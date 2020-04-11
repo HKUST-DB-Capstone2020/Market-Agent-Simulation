@@ -23,7 +23,7 @@ The OMS acts as an exchange and clearing house. It interacts with the ZI-agent a
 
 (1) Limit Order Book:
 
-The limit order book not only contains all orders remaining on the book at $\cal{F}_t$, but also enables operations to manipulate it, including inserting orders, canceling orders, executing orders, etc. 
+The limit order book not only contains all orders remaining on the book at $\cal{F}_t $, but also enables operations to manipulate it, including inserting orders, canceling orders, executing orders, etc. 
 
 (2) Order Manager:
 

@@ -20,7 +20,9 @@ import math
 import time
 import numpy as np
 import matplotlib.pyplot as plt
-from OMS import OrderManagementSystem
+import sys
+sys.path.append(os.path.pardir)
+from OMS.OMS import OrderManagementSystem
 
 # os.chdir("C:\\Users\\jackz\\Desktop\\0410 draft")
 

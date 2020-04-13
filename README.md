@@ -27,7 +27,7 @@ The limit order book not only contains all orders remaining on the book, but als
 
 (2) Order Manager:
 
-### 2. Zero Intelligent Agent
+### 2. Zero Intelligence Agent
 
 The zero intelligence agent is based on the paper [Cont et al. (2011)](http://www.columbia.edu/~ww2040/orderbook.pdf).
 

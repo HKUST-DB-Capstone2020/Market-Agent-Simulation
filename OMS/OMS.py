@@ -2,10 +2,11 @@ import os
 import pandas as pd
 import sys
 sys.path.append(os.path.pardir)
+from LOB.LOB import LimitOrderBook
 
 class action():
-        def __init__(self, input_action):
-            self.agent, self.type, self.direction, self.quantity, self.price = input_action
+    def __init__(self, input_action):
+        self.agent, self.type, self.direction, self.quantity, self.price = input_action
 #             self.agent = input_action[0]
 #             self.type = input_action[1]
 #             self.direction = input_action[2]

@@ -37,10 +37,10 @@ class TestClass:
         
     # LOB.bidBook.bidBook_private
     # deque([[['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
-    #    [['ZIagent', 1000]],
-    #    [['ZIagent', 1000]],
-    #    [['ZIagent', 1000]],
-    #    [['ZIagent', 1000]]])
+    #       [['ZIagent', 1000]],
+    #       [['ZIagent', 1000]],
+    #       [['ZIagent', 1000]],
+    #       [['ZIagent', 1000]]])
     
     
     def test_LOB_insert_at_bid2(self):  
@@ -64,12 +64,12 @@ class TestClass:
         # LOB.bidBook.bidBook_public
         # deque([[9.5, 2500], [9.4, 2500], [9.3, 1000], [9.2, 1000], [9.1, 1000]])
         
-        # LOB.bidBook.bidBook_private
+       #  LOB.bidBook.bidBook_private
        #  deque([[['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
-       # [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
-       # [['ZIagent', 1000]],
-       # [['ZIagent', 1000]],
-       # [['ZIagent', 1000]]])
+       #        [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
+       #        [['ZIagent', 1000]],
+       #        [['ZIagent', 1000]],
+       #        [['ZIagent', 1000]]])
         
     
     def test_LOB_insert_new_bid1(self):  
@@ -92,20 +92,20 @@ class TestClass:
     
     # LOB.bidBook.bidBook_public
     # deque([[9.6, 1500],
-    #    [9.5, 2500],
-    #    [9.4, 2500],
-    #    [9.3, 1000],
-    #    [9.2, 1000],
-    #    [9.1, 1000]])
+    #        [9.5, 2500],
+    #        [9.4, 2500],
+    #        [9.3, 1000],
+    #        [9.2, 1000],
+    #        [9.1, 1000]])
     
     
     # LOB.bidBook.bidBook_private
     # deque([[['ZIagent', 500], ['strategy', 500], ['ZIagent', 500]],
-    #    [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
-    #    [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
-    #    [['ZIagent', 1000]],
-    #    [['ZIagent', 1000]],
-    #    [['ZIagent', 1000]]])
+    #        [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
+    #        [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
+    #        [['ZIagent', 1000]],
+    #        [['ZIagent', 1000]],
+    #        [['ZIagent', 1000]]])
         
         
     
@@ -118,49 +118,49 @@ class TestClass:
         assert LOB.bidBook.bidBook_private[0] == [[ 'ZIagent', 500 ]]
         assert LOB.bidBook.bidBook_private[1] == []
         
-        #LOB.bidBook.bidBook_public
+       # LOB.bidBook.bidBook_public
        #  deque([[9.8, 500],
-       # [9.7, 0],
-       # [9.6, 1500],
-       # [9.5, 2500],
-       # [9.4, 2500],
-       # [9.3, 1000],
-       # [9.2, 1000],
-       # [9.1, 1000]])
+       #         [9.7, 0],
+       #         [9.6, 1500],
+       #         [9.5, 2500],
+       #         [9.4, 2500],
+       #         [9.3, 1000],
+       #         [9.2, 1000],
+       #         [9.1, 1000]])
         
-        # LOB.bidBook.bidBook_private
+       #  LOB.bidBook.bidBook_private
        #  deque([[['ZIagent', 500]],
-       # [],
-       # [['ZIagent', 500], ['strategy', 500], ['ZIagent', 500]],
-       # [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
-       # [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
-       # [['ZIagent', 1000]],
-       # [['ZIagent', 1000]],
-       # [['ZIagent', 1000]]])
+       #         [],
+       #         [['ZIagent', 500], ['strategy', 500], ['ZIagent', 500]],
+       #         [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
+       #         [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
+       #         [['ZIagent', 1000]],
+       #         [['ZIagent', 1000]],
+       #         [['ZIagent', 1000]]])
     
     def test_LOB_insert_new_empty_bid(self): 
         ##
         LOB.update('insert', 'buy', 500, 'ZIagent', LOB.bidBook.bid-1*tick )
         
-        # LOB.bidBook.bidBook_public
+       #  LOB.bidBook.bidBook_public
        #  deque([[9.8, 500],
-       # [9.7, 500],
-       # [9.6, 1500],
-       # [9.5, 2500],
-       # [9.4, 2500],
-       # [9.3, 1000],
-       # [9.2, 1000],
-       # [9.1, 1000]])
+       #         [9.7, 500],
+       #         [9.6, 1500],
+       #         [9.5, 2500],
+       #         [9.4, 2500],
+       #         [9.3, 1000],
+       #         [9.2, 1000],
+       #         [9.1, 1000]])
         
-        # LOB.bidBook.bidBook_private
+       #  LOB.bidBook.bidBook_private
        #  deque([[['ZIagent', 500]],
-       # [['ZIagent', 500]],
-       # [['ZIagent', 500], ['strategy', 500], ['ZIagent', 500]],
-       # [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
-       # [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
-       # [['ZIagent', 1000]],
-       # [['ZIagent', 1000]],
-       # [['ZIagent', 1000]]])
+       #         [['ZIagent', 500]],
+       #         [['ZIagent', 500], ['strategy', 500], ['ZIagent', 500]],
+       #         [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
+       #         [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
+       #         [['ZIagent', 1000]],
+       #         [['ZIagent', 1000]],
+       #         [['ZIagent', 1000]]])
         
     
     
@@ -187,11 +187,11 @@ class TestClass:
         # deque([[10.5, 2500], [10.6, 1000], [10.7, 1000], [10.8, 1000], [10.9, 1000]])
         
         # LOB.askBook.askBook_private
-       #  deque([[['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
-       # [['ZIagent', 1000]],
-       # [['ZIagent', 1000]],
-       # [['ZIagent', 1000]],
-       # [['ZIagent', 1000]]])
+        #  deque([[['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
+        #         [['ZIagent', 1000]],
+        #         [['ZIagent', 1000]],
+        #         [['ZIagent', 1000]],
+        #         [['ZIagent', 1000]]])
         
     
   
@@ -208,20 +208,22 @@ class TestClass:
         assert LOB.askBook.askBook_public[1][1] == 2000
         assert LOB.askBook.askBook_private[1] == [['ZIagent', 1500], ['strategy', 500]]
         
+        
         ##
         LOB.update('insert', 'sell', 500, 'ZIagent', LOB.askBook.ask+1*tick )
         assert LOB.askBook.askBook_public[1][1] == 2500
         assert LOB.askBook.askBook_private[1] == [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]]
         
+        
         # LOB.askBook.askBook_public
         # deque([[10.5, 2500], [10.6, 2500], [10.7, 1000], [10.8, 1000], [10.9, 1000]])
         
         # LOB.askBook.askBook_private
-       #  deque([[['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
-       # [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
-       # [['ZIagent', 1000]],
-       # [['ZIagent', 1000]],
-       # [['ZIagent', 1000]]])
+        #  deque([[['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
+        #         [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
+        #         [['ZIagent', 1000]],
+        #         [['ZIagent', 1000]],
+        #         [['ZIagent', 1000]]])
         
         
     
@@ -247,19 +249,19 @@ class TestClass:
         
        #  LOB.askBook.askBook_public
        #  deque([[10.4, 1500],
-       # [10.5, 2500],
-       # [10.6, 2500],
-       # [10.7, 1000],
-       # [10.8, 1000],
-       # [10.9, 1000]])
+       #         [10.5, 2500],
+       #         [10.6, 2500],
+       #         [10.7, 1000],
+       #         [10.8, 1000],
+       #         [10.9, 1000]])
             
-        # LOB.askBook.askBook_private
+       #  LOB.askBook.askBook_private
        #  deque([[['ZIagent', 500], ['strategy', 500], ['ZIagent', 500]],
-       # [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
-       # [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
-       # [['ZIagent', 1000]],
-       # [['ZIagent', 1000]],
-       # [['ZIagent', 1000]]])
+       #         [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
+       #         [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
+       #         [['ZIagent', 1000]],
+       #         [['ZIagent', 1000]],
+       #         [['ZIagent', 1000]]])
     
     
     def test_LOB_insert_new_ask1_leq2tick(self):  
@@ -271,25 +273,25 @@ class TestClass:
         assert LOB.askBook.askBook_private[0] == [[ 'ZIagent', 500 ]]
         assert LOB.askBook.askBook_private[1] == []
         
-        # LOB.askBook.askBook_public
+       #  LOB.askBook.askBook_public
        #  deque([[10.2, 500],
-       # [10.3, 0],
-       # [10.4, 1500],
-       # [10.5, 2500],
-       # [10.6, 2500],
-       # [10.7, 1000],
-       # [10.8, 1000],
-       # [10.9, 1000]])
+       #         [10.3, 0],
+       #         [10.4, 1500],
+       #         [10.5, 2500],
+       #         [10.6, 2500],
+       #         [10.7, 1000],
+       #         [10.8, 1000],
+       #         [10.9, 1000]])
         
-        # LOB.askBook.askBook_private
+       #  LOB.askBook.askBook_private
        #  deque([[['ZIagent', 500]],
-       # [],
-       # [['ZIagent', 500], ['strategy', 500], ['ZIagent', 500]],
-       # [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
-       # [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
-       # [['ZIagent', 1000]],
-       # [['ZIagent', 1000]],
-       # [['ZIagent', 1000]]])
+       #         [],
+       #         [['ZIagent', 500], ['strategy', 500], ['ZIagent', 500]],
+       #         [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
+       #         [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
+       #         [['ZIagent', 1000]],
+       #         [['ZIagent', 1000]],
+       #         [['ZIagent', 1000]]])
         
         
         
@@ -302,26 +304,26 @@ class TestClass:
         LOB.update('cancel', 'buy', 500, 'ZIagent', LOB.bidBook.bid )
         assert LOB.bidBook.bidBook_public[0] == [LOB.bidBook.bid, 1500]
         
-        # LOB.bidBook.bidBook_public
+       #  LOB.bidBook.bidBook_public
        #  deque([[9.6, 1500],
-       # [9.5, 2500],
-       # [9.4, 2500],
-       # [9.3, 1000],
-       # [9.2, 1000],
-       # [9.1, 1000],
-       # [9.3, 0],
-       # [9.2, 0]])
+       #         [9.5, 2500],
+       #         [9.4, 2500],
+       #         [9.3, 1000],
+       #         [9.2, 1000],
+       #         [9.1, 1000],
+       #         [9.3, 0],
+       #         [9.2, 0]])
         
         
-        # LOB.bidBook.bidBook_private
+       #  LOB.bidBook.bidBook_private
        #  deque([[['ZIagent', 500], ['strategy', 500], ['ZIagent', 500]],
-       # [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
-       # [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
-       # [['ZIagent', 1000]],
-       # [['ZIagent', 1000]],
-       # [['ZIagent', 1000]],
-       # [],
-       # []])
+       #         [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
+       #         [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
+       #         [['ZIagent', 1000]],
+       #         [['ZIagent', 1000]],
+       #         [['ZIagent', 1000]],
+       #         [],
+       #         []])
         
         
         
@@ -336,50 +338,46 @@ class TestClass:
         assert LOB.bidBook.bidBook_private[0] == [['ZIagent', 300], ['strategy', 400]]
     
     
-    # LOB.bidBook.bidBook_public
+       # LOB.bidBook.bidBook_public
        # deque([[9.6, 700],
-       # [9.5, 2500],
-       # [9.4, 2500],
-       # [9.3, 1000],
-       # [9.2, 1000],
-       # [9.1, 1000]])
+       #         [9.5, 2500],
+       #         [9.4, 2500],
+       #         [9.3, 1000],
+       #         [9.2, 1000],
+       #         [9.1, 1000]])
         
-    
-    
-    
-        # LOB.bidBook.bidBook_private
+
+       # LOB.bidBook.bidBook_private
        # deque([[['ZIagent', 300], ['strategy', 400]],
-       # [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
-       # [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
-       # [['ZIagent', 1000]],
-       # [['ZIagent', 1000]],
-       # [['ZIagent', 1000]]])
+       #         [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
+       #         [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
+       #         [['ZIagent', 1000]],
+       #         [['ZIagent', 1000]],
+       #         [['ZIagent', 1000]]])
         
     
     
     def test_LOB_cancel_ask_0(self):  
-        ## compare LOB state 
-        
         ##
         LOB.update('cancel', 'sell', 500, 'ZIagent', LOB.askBook.ask )
         assert LOB.askBook.askBook_public[0] == [LOB.askBook.ask, 1500]
         
-        # LOB.askBook.askBook_private
+       #  LOB.askBook.askBook_private
        #  deque([[['ZIagent', 500], ['strategy', 500], ['ZIagent', 500]],
-       # [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
-       # [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
-       # [['ZIagent', 1000]],
-       # [['ZIagent', 1000]],
-       # [['ZIagent', 1000]],
+       #         [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
+       #         [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
+       #         [['ZIagent', 1000]],
+       #         [['ZIagent', 1000]],
+       #         [['ZIagent', 1000]],
 
         
-        # LOB.askBook.askBook_public
+       #  LOB.askBook.askBook_public
        #  deque([[10.4, 1500],
-       # [10.5, 2500],
-       # [10.6, 2500],
-       # [10.7, 1000],
-       # [10.8, 1000],
-       # [10.9, 1000],
+       #         [10.5, 2500],
+       #         [10.6, 2500],
+       #         [10.7, 1000],
+       #         [10.8, 1000],
+       #         [10.9, 1000],
 
         
         
@@ -396,24 +394,23 @@ class TestClass:
         assert LOB.askBook.askBook_private[0] == [['ZIagent', 300], ['strategy', 400]]
         
         
-        # LOB.askBook.askBook_public
+       #  LOB.askBook.askBook_public
        #  deque([[10.4, 700],
-       # [10.5, 2500],
-       # [10.6, 2500],
-       # [10.7, 1000],
-       # [10.8, 1000],
-       # [10.9, 1000],
+       #         [10.5, 2500],
+       #         [10.6, 2500],
+       #         [10.7, 1000],
+       #         [10.8, 1000],
+       #         [10.9, 1000],
 
         
         
-        
-        # LOB.askBook.askBook_private
+       #  LOB.askBook.askBook_private
        #  deque([[['ZIagent', 300], ['strategy', 400]],
-       # [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
-       # [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
-       # [['ZIagent', 1000]],
-       # [['ZIagent', 1000]],
-       # [['ZIagent', 1000]],
+       #         [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
+       #         [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
+       #         [['ZIagent', 1000]],
+       #         [['ZIagent', 1000]],
+       #         [['ZIagent', 1000]],
         
         
         
@@ -426,54 +423,54 @@ class TestClass:
         LOB.update('cross', 'buy', 700)
         assert LOB.askBook.ask == round(ask_former+1*tick,4)
         
-        # LOB.askBook.askBook_public
+       #  LOB.askBook.askBook_public
        #  deque([[10.5, 2500],
-       # [10.6, 2500],
-       # [10.7, 1000],
-       # [10.8, 1000],
-       # [10.9, 1000],
+       #         [10.6, 2500],
+       #         [10.7, 1000],
+       #         [10.8, 1000],
+       #         [10.9, 1000],
         
-        # LOB.askBook.askBook_private
+       #  LOB.askBook.askBook_private
        #  deque([[['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
-       # [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
-       # [['ZIagent', 1000]],
-       # [['ZIagent', 1000]],
-       # [['ZIagent', 1000]],
+       #         [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
+       #         [['ZIagent', 1000]],
+       #         [['ZIagent', 1000]],
+       #         [['ZIagent', 1000]],
     
     def test_LOB_cross_market_buy_ask2eq0(self): 
         LOB.update('insert', 'sell', 500, 'strategy', LOB.askBook.ask-2*tick )
         
-        # LOB.askBook.askBook_public
+       #  LOB.askBook.askBook_public
        #  deque([[10.3, 500],
-       # [10.4, 0],
-       # [10.5, 2500],
-       # [10.6, 2500],
-       # [10.7, 1000],
-       # [10.8, 1000],
-       # [10.9, 1000]])
+       #         [10.4, 0],
+       #         [10.5, 2500],
+       #         [10.6, 2500],
+       #         [10.7, 1000],
+       #         [10.8, 1000],
+       #         [10.9, 1000]])
         
-        # LOB.askBook.askBook_private
+       #  LOB.askBook.askBook_private
        #  deque([[['strategy', 500]],
-       # [],
-       # [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
-       # [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
-       # [['ZIagent', 1000]],
-       # [['ZIagent', 1000]],
-       # [['ZIagent', 1000]]])
+       #         [],
+       #         [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
+       #         [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
+       #         [['ZIagent', 1000]],
+       #         [['ZIagent', 1000]],
+       #         [['ZIagent', 1000]]])
         
         ask_former = LOB.askBook.ask
         LOB.update('cross', 'buy', 500)
         assert LOB.askBook.ask == round(ask_former+2*tick,4)
         
-        # LOB.askBook.askBook_public
-        # deque([[10.5, 2500], [10.6, 2500], [10.7, 1000], [10.8, 1000], [10.9, 1000]])
+       # LOB.askBook.askBook_public
+       # deque([[10.5, 2500], [10.6, 2500], [10.7, 1000], [10.8, 1000], [10.9, 1000]])
         
-        # LOB.askBook.askBook_private
+       #  LOB.askBook.askBook_private
        #  deque([[['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
-       # [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
-       # [['ZIagent', 1000]],
-       # [['ZIagent', 1000]],
-       # [['ZIagent', 1000]]])
+       #         [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
+       #         [['ZIagent', 1000]],
+       #         [['ZIagent', 1000]],
+       #         [['ZIagent', 1000]]])
         
         
         
@@ -483,59 +480,59 @@ class TestClass:
         LOB.update('cross', 'sell', 700)
         assert LOB.bidBook.bid == round(bid_former-1*tick,4)
         
-        # LOB.bidBook.bidBook_public
+       #  LOB.bidBook.bidBook_public
        #  deque([[9.5, 2500],
-       # [9.4, 2500],
-       # [9.3, 1000],
-       # [9.2, 1000],
-       # [9.1, 1000],
+       #         [9.4, 2500],
+       #         [9.3, 1000],
+       #         [9.2, 1000],
+       #         [9.1, 1000],
 
         
         
-        # LOB.bidBook.bidBook_private
+       #  LOB.bidBook.bidBook_private
        #  deque([[['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
-       # [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
-       # [['ZIagent', 1000]],
-       # [['ZIagent', 1000]],
-       # [['ZIagent', 1000]],
+       #         [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
+       #         [['ZIagent', 1000]],
+       #         [['ZIagent', 1000]],
+       #         [['ZIagent', 1000]],
         
     def test_LOB_cross_market_sell_bid2eq0(self): 
         LOB.update('insert', 'buy', 500, 'strategy', LOB.bidBook.bid+2*tick )
-        # LOB.bidBook.bidBook_public
+       #  LOB.bidBook.bidBook_public
        #  deque([[9.7, 500],
-       # [9.6, 0],
-       # [9.5, 2500],
-       # [9.4, 2500],
-       # [9.3, 1000],
-       # [9.2, 1000],
-       # [9.1, 1000]])
+       #         [9.6, 0],
+       #         [9.5, 2500],
+       #         [9.4, 2500],
+       #         [9.3, 1000],
+       #         [9.2, 1000],
+       #         [9.1, 1000]])
         
-        # LOB.bidBook.bidBook_private
+       #  LOB.bidBook.bidBook_private
        #  deque([[['strategy', 500]],
-       # [],
-       # [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
-       # [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
-       # [['ZIagent', 1000]],
-       # [['ZIagent', 1000]],
-       # [['ZIagent', 1000]]])
+       #         [],
+       #         [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
+       #         [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
+       #         [['ZIagent', 1000]],
+       #         [['ZIagent', 1000]],
+       #         [['ZIagent', 1000]]])
         
         bid_former = LOB.bidBook.bid  #9.7
         LOB.update('cross', 'sell', 500)
         assert LOB.bidBook.bid == round(bid_former-2*tick,4)
         
-        # LOB.bidBook.bidBook_public
-        #  deque([[9.5, 2500],
-       # [9.4, 2500],
-       # [9.3, 1000],
-       # [9.2, 1000],
-       # [9.1, 1000]])
+       #  LOB.bidBook.bidBook_public
+       #  deque([[9.5, 2500],
+       #         [9.4, 2500],
+       #         [9.3, 1000],
+       #         [9.2, 1000],
+       #         [9.1, 1000]])
         
-        # LOB.bidBook.bidBook_private
+       #  LOB.bidBook.bidBook_private
        #  deque([[['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
-       # [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
-       # [['ZIagent', 1000]],
-       # [['ZIagent', 1000]],
-       # [['ZIagent', 1000]]])
+       #         [['ZIagent', 1500], ['strategy', 500], ['ZIagent', 500]],
+       #         [['ZIagent', 1000]],
+       #         [['ZIagent', 1000]],
+       #         [['ZIagent', 1000]]])
         
         
         

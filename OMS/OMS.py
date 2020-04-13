@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import sys
 sys.path.append(os.path.pardir)
+from LOB.LOB import LimitOrderBook
 
 class action():
         def __init__(self, input_action):

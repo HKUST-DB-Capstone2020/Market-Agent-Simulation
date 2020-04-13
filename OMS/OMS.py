@@ -7,13 +7,7 @@ from LOB.LOB import LimitOrderBook
 class action():
     def __init__(self, input_action):
         self.agent, self.type, self.direction, self.quantity, self.price = input_action
-#             self.agent = input_action[0]
-#             self.type = input_action[1]
-#             self.direction = input_action[2]
-#             self.quantity = input_action[3]
-#             self.price = input_action[4]
-
-            
+           
             
 class OrderManagementSystem:
     
@@ -22,6 +16,8 @@ class OrderManagementSystem:
         self.LOB = LimitOrderBook( ask, bid, tick, orderLevel)
         self.tick = tick
         self.lastPrice = lastPrice  # prevailing market price
+        self.execPrice = []
+        self.execQty = []
 #         self.status = "Auction"
 
     def receive(self, agent_action):
@@ -127,17 +123,64 @@ class OrderManagementSystem:
 #         pass
                  
     
+#     def market_order(self):
+#         if self.action.direction == "buy":
+#             while self.action.quantity > 0:
+#                 try:
+#                     if self.action.quantity > self.LOB.askBook.askBook_public[0][1]:
+#                         self.action.quantity -= self.LOB.askBook.askBook_public[0][1]
+#                         self.LOB.update("cross", "buy", self.LOB.askBook.askBook_public[0][1])
+#                         self.lastPrice = self.askBook.ask
+#                         print(self.lastPrice)
+
+#                     else:
+#                         self.LOB.update("cross", "buy", self.action.quantity)
+#                         self.action.quantity = 0
+#                         self.lastPrice = self.LOB.askBook.ask
+#                          print(self.lastPrice)
+#                 except:
+#                     self.action.quantity = 0
+                    
+#         elif self.action.direction == "sell":
+#             while self.action.quantity > 0:
+#                 try:
+#                     if self.action.quantity > self.LOB.bidBook.bidBook_public[0][1]:
+#                         self.action.quantity -= self.LOB.bidBook.bidBook_public[0][1]
+#                         self.LOB.update("cross", "sell", self.LOB.bidBook.bidBook_public[0][1])
+#                         self.lastPrice = self.LOB.bidBook.bid
+
+#                     else:
+#                         self.LOB.update("cross", "sell", self.action.quantity)
+#                         self.action.quantity = 0
+#                         self.lastPrice = self.LOB.bidBook.bid
+#                 except:
+#                     self.action.quantity = 0
+                    
+                    
+#         else:
+#             print("ERROR: An incorrect direction!")
+    
     def market_order(self):
+        self.execPrice = []
+        self.execQty = []
+        
         if self.action.direction == "buy":
             while self.action.quantity > 0:
                 try:
                     if self.action.quantity > self.LOB.askBook.askBook_public[0][1]:
+                        self.execPrice.append( self.LOB.askBook.askBook_public[0][0] )
+                        self.execQty.append( self.LOB.askBook.askBook_public[0][1] )                        
                         self.action.quantity -= self.LOB.askBook.askBook_public[0][1]
                         self.LOB.update("cross", "buy", self.LOB.askBook.askBook_public[0][1])
+                        self.lastPrice = self.LOB.askBook.ask
 
                     else:
+                        self.execPrice.append( self.LOB.askBook.askBook_public[0][0] )
+                        self.execQty.append( self.action.quantity )                    
                         self.LOB.update("cross", "buy", self.action.quantity)
                         self.action.quantity = 0
+                        self.lastPrice = self.LOB.askBook.ask
+
                 except:
                     self.action.quantity = 0
                     
@@ -145,15 +188,17 @@ class OrderManagementSystem:
             while self.action.quantity > 0:
                 try:
                     if self.action.quantity > self.LOB.bidBook.bidBook_public[0][1]:
-    #                     print("cross", "sell", self.LOB.bidBook.bidBook_public[0][1])
+                        self.execPrice.append( self.LOB.bidBook.bidBook_public[0][0] )
+                        self.execQty.append( self.LOB.bidBook.bidBook_public[0][1] )
                         self.action.quantity -= self.LOB.bidBook.bidBook_public[0][1]
                         self.LOB.update("cross", "sell", self.LOB.bidBook.bidBook_public[0][1])
-
+                        self.lastPrice = self.LOB.bidBook.bid
                     else:
+                        self.execPrice.append( self.LOB.bidBook.bidBook_public[0][0] )
+                        self.execQty.append( self.action.quantity )
                         self.LOB.update("cross", "sell", self.action.quantity)
-
-    #                     print(1,"cross", "sell", self.action.quantity)
                         self.action.quantity = 0
+                        self.lastPrice = self.LOB.bidBook.bid
                 except:
                     self.action.quantity = 0
                     
@@ -166,11 +211,19 @@ class OrderManagementSystem:
         if self.action.direction == "buy":
             while self.action.quantity > 0 and self.action.price >= self.LOB.askBook.ask:
                 if self.action.quantity > self.LOB.askBook.askBook_public[0][1]:
+                    self.execPrice.append( self.LOB.askBook.askBook_public[0][0] )
+                    self.execQty.append( self.LOB.askBook.askBook_public[0][1] )
                     self.action.quantity -= self.LOB.askBook.askBook_public[0][1]
                     self.LOB.update("cross", "buy", self.LOB.askBook.askBook_public[0][1])
+                    self.lastPrice = self.LOB.askBook.ask
+
                 else:
+                    self.execPrice.append( self.LOB.askBook.askBook_public[0][0] )
+                    self.execQty.append( self.LOB.askBook.askBook_public[0][1] )
                     self.LOB.update("cross", "buy", self.action.quantity)
                     self.action.quantity = 0
+                    self.lastPrice = self.LOB.askBook.ask
+
             if self.action.quantity > 0:
                 self.LOB.update("insert", "buy", self.action.quantity, self.action.agent, self.action.price)
                 
@@ -178,11 +231,17 @@ class OrderManagementSystem:
         elif self.action.direction == "sell":
             while self.action.quantity>0 and self.action.price <= self.LOB.bidBook.bid:
                 if self.action.quantity > self.LOB.bidBook.bidBook_public[0][1]:
+                    self.execPrice.append( self.LOB.bidBook.bidBook_public[0][0] )
+                    self.execQty.append( self.LOB.bidBook.bidBook_public[0][1] )
                     self.action.quantity -= self.LOB.bidBook.bidBook_public[0][1]                   
-                    self.LOB.update("cross", "sell", self.LOB.bidBook.bidBook_public[0][1])                  
+                    self.LOB.update("cross", "sell", self.LOB.bidBook.bidBook_public[0][1]) 
+                    self.lastPrice = self.LOB.bidBook.bid
                 else:
+                    self.execPrice.append( self.LOB.bidBook.bidBook_public[0][0] )
+                    self.execQty.append( self.LOB.bidBook.bidBook_public[0][1] )
                     self.LOB.update("cross", "sell", self.action.quantity)
                     self.action.quantity = 0
+                    self.lastPrice = self.LOB.bidBook.bid
             if self.action.quantity>0:
                 self.LOB.update("insert", "sell", self.action.quantity, self.action.agent, self.action.price)
         else:
@@ -219,3 +278,5 @@ class OrderManagementSystem:
                  
         else:
             print("ERROR: An incorrect type!")
+        
+        

@@ -20,8 +20,9 @@ import math
 import time
 import numpy as np
 import matplotlib.pyplot as plt
+from OMS import OrderManagementSystem
 
-os.chdir("C:\\Users\\jackz\\Desktop\\0410 draft")
+# os.chdir("C:\\Users\\jackz\\Desktop\\0410 draft")
 
 
 # parameters according to Cont paper

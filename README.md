@@ -27,6 +27,8 @@ The limit order book not only contains all orders remaining on the book, but als
 
 (2) Order Manager: (Author: SHEN, Kanchao)
 
+The OMS recieves all the requests from agents, matches the orders and maintain the LOB. Also, there are some public information that all traders can get from OMS.
+
 ### 2. Zero Intelligence Agent
 (Author: MO, Zi and ZHOU, Zhen)
 

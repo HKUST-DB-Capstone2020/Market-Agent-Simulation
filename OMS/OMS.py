@@ -34,14 +34,18 @@ class OrderManagementSystem:
                               limit  sell
                               cancel
         '''
+        self.execPrice = []
+        self.execQty = []
         self.action = action(agent_action)
         self.CDA()
 
+    def update_order_book(self):
+        self.ask = self.__LOB.askBook.nearPrice
+        self.bid = self.__LOB.bidBook.nearPrice
+        self.ask_book = self.__LOB.askBook.Book_public
+        self.bid_book = self.__LOB.bidBook.Book_public
 
     def market_order(self):
-        self.execPrice = []
-        self.execQty = []
-
         if self.action.direction == "buy":
             while self.action.quantity > 0:
                 try:
@@ -63,10 +67,7 @@ class OrderManagementSystem:
 
                 except:
                     self.action.quantity = 0
-                self.ask = self.__LOB.askBook.nearPrice
-                self.bid = self.__LOB.bidBook.nearPrice
-                self.ask_book = self.__LOB.askBook.Book_public
-                self.bid_book = self.__LOB.bidBook.Book_public
+                self.update_order_book()
 
         elif self.action.direction == "sell":
             while self.action.quantity > 0:
@@ -88,10 +89,7 @@ class OrderManagementSystem:
                         self.action.quantity = 0
                 except:
                     self.action.quantity = 0
-                self.ask = self.__LOB.askBook.nearPrice
-                self.bid = self.__LOB.bidBook.nearPrice
-                self.ask_book = self.__LOB.askBook.Book_public
-                self.bid_book = self.__LOB.bidBook.Book_public
+                self.update_order_book()
 
         else:
             print("ERROR: An incorrect direction!")
@@ -115,17 +113,9 @@ class OrderManagementSystem:
                     self.__LOB.update("cross", "buy", self.action.quantity)
                     self.action.quantity = 0
 
-                self.ask = self.__LOB.askBook.nearPrice
-                self.bid = self.__LOB.bidBook.nearPrice
-                self.ask_book = self.__LOB.askBook.Book_public
-                self.bid_book = self.__LOB.bidBook.Book_public
-
             if self.action.quantity > 0:
                 self.__LOB.update("insert", "buy", self.action.quantity, self.action.agent, self.action.price)
-                self.ask = self.__LOB.askBook.nearPrice
-                self.bid = self.__LOB.bidBook.nearPrice
-                self.ask_book = self.__LOB.askBook.Book_public
-                self.bid_book = self.__LOB.bidBook.Book_public
+            self.update_order_book()
 
         elif self.action.direction == "sell":
             while self.action.quantity > 0 and self.action.price <= self.__LOB.bidBook.nearPrice:
@@ -143,48 +133,35 @@ class OrderManagementSystem:
                     self.trade_vol_record.append(self.action.quantity)
                     self.__LOB.update("cross", "sell", self.action.quantity)
                     self.action.quantity = 0
-                self.ask = self.__LOB.askBook.nearPrice
-                self.bid = self.__LOB.bidBook.nearPrice
-                self.ask_book = self.__LOB.askBook.Book_public
-                self.bid_book = self.__LOB.bidBook.Book_public
+
             if self.action.quantity > 0:
                 self.__LOB.update("insert", "sell", self.action.quantity, self.action.agent, self.action.price)
-                self.ask = self.__LOB.askBook.nearPrice
-                self.bid = self.__LOB.bidBook.nearPrice
-                self.ask_book = self.__LOB.askBook.Book_public
-                self.bid_book = self.__LOB.bidBook.Book_public
+            self.update_order_book()
         else:
             print("ERROR: An incorrect direction!")
 
     def cancel_order(self):
+        sum_vol = 0
         if (self.action.direction == "buy") and (self.action.price <= self.__LOB.bidBook.nearPrice):
             book_loc = round((self.__LOB.bidBook.nearPrice - self.action.price) / self.tick)
             if book_loc < len(self.__LOB.bidBook.Book_public):
-                sum_vol = 0
                 for info in self.__LOB.bidBook.Book_private[book_loc]:
                     if info[0] == self.action.agent:
                         sum_vol += info[1]
                 if sum_vol >= self.action.quantity:
                     self.__LOB.update("cancel", self.action.direction, self.action.quantity, self.action.agent,
                                     self.action.price)
-                    self.ask = self.__LOB.askBook.nearPrice
-                    self.bid = self.__LOB.bidBook.nearPrice
-                    self.ask_book = self.__LOB.askBook.Book_public
-                    self.bid_book = self.__LOB.bidBook.Book_public
+                    self.update_order_book()
         if (self.action.direction == "sell") and (self.action.price >= self.__LOB.askBook.nearPrice):
             book_loc = round((self.action.price - self.__LOB.askBook.nearPrice) / self.tick)
             if book_loc < len(self.__LOB.askBook.Book_public):
-                sum_vol = 0
                 for info in self.__LOB.askBook.Book_private[book_loc]:
                     if info[0] == self.action.agent:
                         sum_vol += info[1]
                 if sum_vol >= self.action.quantity:
                     self.__LOB.update("cancel", self.action.direction, self.action.quantity, self.action.agent,
                                     self.action.price)
-                    self.ask = self.__LOB.askBook.nearPrice
-                    self.bid = self.__LOB.bidBook.nearPrice
-                    self.ask_book = self.__LOB.askBook.Book_public
-                    self.bid_book = self.__LOB.bidBook.Book_public
+                    self.update_order_book()
 
     def CDA(self):
         if self.action.type == "market":
@@ -195,7 +172,6 @@ class OrderManagementSystem:
 
         elif self.action.type == "cancel":
             self.cancel_order()
-
 
         else:
             print("ERROR: An incorrect type!")

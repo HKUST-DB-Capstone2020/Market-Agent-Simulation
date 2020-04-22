@@ -72,7 +72,7 @@ class TestClass:
 		OMS = OrderManagementSystem(10.0, 9.8, 0.1, 5, 9.7)
 		OMS.receive(["ZIagent", "cancel",  "buy", 1560, 9.8])
 		a = OMS.bid_book[0].qty == 1000
-		b = int(OMS.bid*10) == 98
+		b = int(OMS.bid*10) == 97
 		assert a 
 		assert b
 
@@ -148,11 +148,37 @@ class TestClass:
 		OMS = OrderManagementSystem(10.0, 9.8, 0.1, 5, 9.7)
 		OMS.receive(["ZIagent", "market",  "sell", 7000, 10.4])
 		a = int(OMS.bid) == 0
-		b = OMS.ask_book[0].qty == 1000
-		c = int(OMS.ask*10) == 100
+		b = OMS.ask_book[4].qty == 1000
+		c = int(OMS.ask_book[4].price * 10) == 104
 		assert a 
 		assert b
 		assert c
+
+	def test_exe_less(self):
+		OMS = OrderManagementSystem(10.0, 9.8, 0.1, 5, 9.7)
+		OMS.receive(["ZIagent", "market",  "sell", 300, 9.7])
+		a = OMS.execPrice == [9.8]
+		b = OMS.execQty == [300]
+		assert a
+		assert b
+
+	def test_exe_more(self):
+		OMS = OrderManagementSystem(10.0, 9.8, 0.1, 5, 9.7)
+		OMS.receive(["ZIagent", "limit",  "sell", 2300, 9.7])
+		a = OMS.execPrice == [9.8, 9.7]
+		b = OMS.execQty == [1000, 1000]
+		assert a
+		assert b
+
+	def test_trade_record(self):
+		OMS = OrderManagementSystem(10.0, 9.8, 0.1, 5, 9.7)
+		OMS.receive(["ZIagent", "limit",  "sell", 2300, 9.7])
+		OMS.receive(["ZIagent", "market", "sell", 1300, 9.7])
+		OMS.receive(["ZIagent", "market", "buy", 1400, 9.7])
+		a = OMS.trade_price_record == [9.8, 9.7, 9.6, 9.5, 9.7, 10.0, 10.1]
+		b = OMS.trade_vol_record == [1000, 1000, 1000, 300, 300, 1000, 100]
+		assert a
+		assert b
 
 if __name__ == "__main__":
 	pytest.main()

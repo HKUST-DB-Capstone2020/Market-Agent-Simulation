@@ -1,0 +1,63 @@
+import numpy as np
+import pytest
+import os
+import random
+os.chdir("C:\\Users\\Lenovo\\Desktop")
+from ZIAgent import ZIAgent
+
+class Estimation:
+    
+    def DeathRateEst(self,Est,length,Deltat,n):
+        artime = []
+        for i in range(n):
+           artime.append(ZIAgent.OneShotBirthDeath(length,0,length*Est,Deltat)[1])
+            
+        Test = [1/(length*np.mean(artime)),1/(length*np.std(artime))]
+    
+        return Test
+    
+    def BirthRateEst(self,Est,length,Deltat,n):
+        artime = []
+        for i in range(n):
+             artime.append(ZIAgent.OneShotBirthDeath(length,Est,0,Deltat)[1])
+            
+        Test = [1/np.mean(artime),1/np.std(artime)]
+    
+        return Test
+    
+class TestClass:     
+    def test_Theta(self):
+        Theta_Est = [0.71,0.81,0.68,0.56,0.47]
+        Theta_test = [[]]
+        for j in range(len(Theta_Est)):
+           Theta_test.append(Estimation.DeathRateEst(Theta_Est[j],10,10,100000))
+        
+        for i in range(len(Theta_test)):
+            for j in range(len(Theta_test[i])):
+                a = abs(Theta_Est[i]-Theta_test[i][j]) <= 0.05
+                assert a
+                
+
+    def test_Lambda(self):
+        Lambda_Est = [1.85,1.51,1.09,0.88,0.77]
+        Lambda_test = [[]]
+        for j in range(len(Lambda_Est)):
+             Lambda_test.append(Estimation.BirthRateEst(Lambda_Est[j],0,10,100000))
+        
+        for i in range(len(Lambda_test)):
+            for j in range(len(Lambda_test[i])):
+                a = abs(Lambda_Est[i]-Lambda_test[i][j]) <= 0.05
+                assert a
+                
+    def test_Mu(self):
+        Mu_Est = 0.94
+        mu_test = Estimation.BirthRateEst(Mu_Est,0,10,100000)
+        
+        for i in range(mu_test):
+            a = abs(mu_test[i]-Mu_Est) <= 0.05
+            assert a
+
+
+if __name__ == "__main__":
+    
+    pytest.main()

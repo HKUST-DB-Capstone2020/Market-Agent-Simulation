@@ -30,7 +30,7 @@ The limit order book not only contains all orders remaining on the book, but als
 The OMS recieves all the requests from agents, matches the orders and maintain the LOB. Also, there are some public information that all traders can get from OMS.
 
 ### 2. Zero Intelligence Agent
-(Author: MO, Zi and ZHOU, Zhen)
+(Author: ZHOU, Zhen and MO, Zi)
 
 The Zero-Intelligence agent is an order generator which follows a stochastic model based on the paper [Cont et al. (2011)](http://www.columbia.edu/~ww2040/orderbook.pdf). It will output an order when it is given the current limit order book situation, and records the orders it has generated and how the limit order book changes.
 

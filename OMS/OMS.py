@@ -18,6 +18,8 @@ class OrderManagementSystem:
         self.tick = tick
         self.trade_price_record = []
         self.trade_vol_record = []
+        self.max_price = 4560987
+        self.min_price = 0
 
     def init_book(self):
         if self.action.direction == "buy":
@@ -67,7 +69,7 @@ class OrderManagementSystem:
     def cancel_order(self):
         sum_vol = 0
         if self.__para * self.action.price <= self.__para * self.__book.nearPrice:
-            book_loc = round((self.__book.nearPrice - self.action.price) / self.tick)
+            book_loc = int(round((self.__book.nearPrice - self.action.price) / self.tick))
             if book_loc < len(self.__book.Book_public):
                 for info in self.__book.Book_private[book_loc]:
                     if info[0] == self.action.agent:

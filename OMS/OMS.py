@@ -1,5 +1,5 @@
 import os
-import pandas as pd
+# import pandas as pd
 import sys
 sys.path.append(os.path.pardir)
 from LOB.LOB import LimitOrderBook
@@ -18,8 +18,8 @@ class OrderManagementSystem:
         self.tick = tick
         self.trade_price_record = []
         self.trade_vol_record = []
-        self.max_price = 4560987
-        self.min_price = 0
+        self.MAX_PRICE = 4560987
+        self.MIN_PRICE = 0
 
     def init_book(self):
         if self.action.direction == "buy":

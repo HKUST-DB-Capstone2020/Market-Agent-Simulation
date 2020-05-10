@@ -66,7 +66,13 @@ class TestClass:
 		OMS = OrderManagementSystem(10.0, 9.8, 0.1, 5, 9.7)
 		OMS.receive(["ZIagent", "cancel",  "buy", 560, 9.7])
 		a = OMS.bid_book[1].qty == 440
-		assert a 
+		assert a
+
+	def test_buy_cancel_order_less2(self):
+		OMS = OrderManagementSystem(10.0, 9.8, 0.1, 5, 9.7)
+		OMS.receive(["ZIagent", "cancel",  "buy", 560, 9.6])
+		a = OMS.bid_book[2].qty == 440
+		assert a
 
 	def test_buy_cancel_order_more(self):  
 		OMS = OrderManagementSystem(10.0, 9.8, 0.1, 5, 9.7)

@@ -186,6 +186,13 @@ class TestClass:
 		assert a
 		assert b
 
+	def test_parameters(self):
+		OMS = OrderManagementSystem(10.0, 9.8, 0.1, 5, 9.7)
+		a = OMS.MAX_PRICE == 4560987
+		b = OMS.MIN_PRICE == 0
+		assert a
+		assert b
+
 if __name__ == "__main__":
 	pytest.main()
 

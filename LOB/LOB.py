@@ -226,6 +226,7 @@ class LimitOrderBook:
                 self.bidBook.insert(ID, limitPrice, quantity)  
             elif orderSide == 'sell':
                 self.askBook.insert(ID, limitPrice, quantity)
+            return []
         
         elif orderType == 'cancel':
             if orderSide == 'buy':
@@ -233,6 +234,7 @@ class LimitOrderBook:
                     
             elif orderSide == 'sell':
                 self.askBook.cancel(ID, limitPrice, quantity)
+            return []
             
         elif orderType == 'cross':
             if orderSide == 'buy':

@@ -134,6 +134,9 @@ class Book:
         self.Book_public[0] = self.Book_public[0]._replace( qty=self.Book_public[0].qty - quantity ) 
         
         if self.Book_public[0].qty == 0:   ## nearest level is eaten up
+            
+            result_record = self.Book_private[0].copy()
+            
             # judge if the book becomes empty after this cross
             if self.isEmpty():
                 self.set_nearPrice_isEmpty()
@@ -149,18 +152,25 @@ class Book:
                     
                     if len(self.Book_public) < self.orderLevel:  # length of orderbook < orderLevel: need to keep at least minimal length
                         self.Book_public.append(self.prc_qty(price = round(self.nearPrice+ self.bidORask*(self.orderLevel-1)*self.tick,4), 
-                                                                 qty   = 0))
+                                                             qty   = 0))
                         self.Book_private.append([])
         else:  ## nearest level is not eaten up
+            
+            result_record = []
+            
             #find the ID to cancel
             qty_to_cancel = quantity
             while qty_to_cancel > 0:
                 if self.Book_private[0][0].qty < qty_to_cancel: # first guy in the queue is not enough to cancel
+                    result_record.append( self.Book_private[0][0].copy() )
                     qty_to_cancel -= self.Book_private[0][0].qty
                     self.Book_private[0].pop(0)
                 else:
+                    result_record.append( self.Book_private[0][0]._replace( qty=qty_to_cancel )  )
                     self.Book_private[0][0] = self.Book_private[0][0]._replace( qty=self.Book_private[0][0].qty - qty_to_cancel ) 
                     qty_to_cancel = 0
+                    
+        return result_record
 
 
 
@@ -197,8 +207,12 @@ class LimitOrderBook:
     
     def __init__(self, askPrice, bidPrice, tick, orderLevel, init_size=1000):
         '''Initialize the limit order book'''
-        self.askBook = AskBook(askPrice, tick, orderLevel, init_size)
-        self.bidBook = BidBook(bidPrice, tick, orderLevel, init_size)
+        try:
+            assert askPrice > bidPrice
+            self.askBook = AskBook(askPrice, tick, orderLevel, init_size)
+            self.bidBook = BidBook(bidPrice, tick, orderLevel, init_size)
+        except:
+            print("Creating LOB Failed: Ask price must be larger than bid price.")
         
     def reset(self, askPrice, bidPrice):
         '''Reset the limit order book'''
@@ -223,10 +237,10 @@ class LimitOrderBook:
         elif orderType == 'cross':
             if orderSide == 'buy':
                 ## market buy order (need to cross it in the askBook)
-                self.askBook.cross(quantity)
+                return self.askBook.cross(quantity)
 
             elif orderSide == 'sell':
                 ## market sell order(need to cross it in the bidBook)
-                self.bidBook.cross(quantity)
+                return self.bidBook.cross(quantity)
         
    

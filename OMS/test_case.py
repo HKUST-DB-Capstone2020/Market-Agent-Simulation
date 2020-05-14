@@ -99,9 +99,20 @@ class TestClass:
 	def test_sell_cancel_order_more(self):  
 		OMS = OrderManagementSystem(10.0, 9.8, 0.1, 5, 9.7)
 		OMS.receive(["ZIagent", "cancel",  "sell", 1560, 10.2])
-		a = OMS.ask_book[0].qty == 1000
+		a = OMS.ask_book[2].qty == 0
 		b = int(OMS.ask*10) == 100
 		assert a 
+		assert b
+
+	def test_sell_cancel_order_more2(self):
+		OMS = OrderManagementSystem(10.0, 9.8, 0.1, 5, 9.7)
+		OMS.receive(["ZIagent", "cancel",  "sell", 1000, 10.0])
+		print(OMS.ask_book)
+		OMS.receive(["ZIagent", "cancel", "sell", 1000, 10.2])
+		print(OMS.ask_book)
+		a = OMS.ask_book[1].qty == 0
+		b = int(OMS.ask*10) == 101
+		assert a
 		assert b
 
 

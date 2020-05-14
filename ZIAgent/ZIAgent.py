@@ -1,15 +1,9 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Apr 24 18:15:21 2020
-
-@author: jackz
-"""
-
 
 import os
 import sys
 import random
 import math
+# import time
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -19,18 +13,17 @@ from OMS.OMS import OrderManagementSystem
 
 
 class ZIAgent(object):
-    def __init__(self,name,OMSinput,n,PriceGridSize,Mu,Lambda,Theta,deltaT,\
+    def __init__(self,NAME,OMSinput,MAX_PRICE_LEVELS,TICK_SIZE,MU,LAMBDA,THETA,\
                  CurrentTime,OrderCount,ZIOrderBook):
-        self.name = name
+        self.NAME = NAME
         self.OMSinput = OMSinput
-        self.n = n
-        self.PriceGridSize = PriceGridSize
-        self.Mu = Mu
-        self.Lambda = Lambda
-        self.Theta = Theta
-        self.deltaT = deltaT
+        self.MAX_PRICE_LEVELS = MAX_PRICE_LEVELS
+        self.TICK_SIZE = TICK_SIZE
+        self.MU = MU
+        self.LAMBDA = LAMBDA
+        self.THETA = THETA
         self.qtysize = 1000
-        self.PriceDecimals = math.ceil(math.log10(1/PriceGridSize))
+        self.PriceDecimals = math.ceil(math.log10(1/TICK_SIZE))
         self.AskBookHistory = [list(OMSinput.ask_book)]
         self.BidBookHistory = [list(OMSinput.bid_book)]
         self.PricePathDF =  pd.DataFrame({"AskPrice":[0.0],"AskP_2":[0.0],"BidPrice":[0.0],"BidP_2":[0.0],"MarketPrice":[0.0],\
@@ -43,195 +36,178 @@ class ZIAgent(object):
         self.CurrentTime = CurrentTime
         self.OrderCount = OrderCount
         self.ZIOrderBook = ZIOrderBook
-        self.OrderArrivalTime = deltaT
+        self.OrderArrivalTime = 0
         self.OrderIssued = []
-    
-    
-    def OneShotBirthDeath(self,x,b,d,deltaT):  
-    # b = birth rate, d = death rate, x = current state
-    # output = [Increment 1 or -1 or 0, ArrivalTime]
-        if ((b == 0) and (d == 0)):  # no birth and death
-            outcome = [0,deltaT]
-    
-        d_temp = d
-        if (x == 0) :
-            d_temp = 0  # birth only
-        elif (x > 0) :
-            d_temp = d
-            
-        try:
-            h = random.expovariate(b + d_temp)   # time intervel before next arrival
-        except ZeroDivisionError:
-            h = deltaT
-            
-        if (h >= deltaT) :
-            outcome = [0,deltaT]
-        else:
-            U = random.random()
-            if U < b/(b + d_temp):
-                # birth occurs
-                outcome = [1,h] 
-            else:
-                # death occurs
-                outcome = [-1,h]             
-        return outcome
-
-
-
-    def OneShotBuyOrderUpdate(self,y,p,pA,deltaT,Mu,Lambda,Theta):
-        if p>pA:
-            return self.OneShotBirthDeath(y,0,0,deltaT)
-        elif p==pA:
-            return self.OneShotBirthDeath(y,Mu,0,deltaT)
-        else:
-            return self.OneShotBirthDeath(y,Lambda,Theta*y,deltaT)
-
-
-
-    def OneShotSellOrderUpdate(self,z,p,pB,deltaT,Mu,Lambda,Theta):
-        if p<pB:
-            return self.OneShotBirthDeath(z,0,0,deltaT)
-        elif p==pB:
-            return self.OneShotBirthDeath(z,Mu,0,deltaT)
-        else:
-            return self.OneShotBirthDeath(z,Lambda,Theta*z,deltaT)
-
-
-
-    def OneShotZIOrderIssue_PD(self,Order,pA,pB,direction,qty):
-    # Order = (PriceLevel,Series('OrderStorge','Qty','Increment','ArrivalTime'))
-    # direction = "buy" or "sell"
-    # output = ["ZIAgent",limit or market or cancel, buy or sell, quantity, price]
-        p = Order[0]
-        increment = int(Order[1].Increment)
-        ordertype = ""
         
-        if (increment == -1):
-            ordertype = "cancel"
-        else:
-            if (( direction == "buy" and p<pA ) or ( direction == "sell" and p>pB )) :
-                ordertype = "limit"
-            if (( direction == "buy" and p==pA ) or ( direction == "sell" and p==pB )) :
-                ordertype = "market"
+
     
-        output = [self.name, ordertype, direction, qty, round(p*self.PriceGridSize,self.PriceDecimals)]        
-        return output
-
-
-
-    def GetParameter(self,Parameter_Est,distance,Parameter):
-    # get birth rate and death rate of different price levels from Lambda_Est Theta_Est
-    # 0 if out of the distance, in Cont paper, the valid distance is 5
+    
+    
+    def GetLimitOrderRate(self,Parameter_Est,distance):
         n = len(Parameter_Est)
         distance = int(round(distance,0))
-        if Parameter == "lambda":
-            if (distance <= n and distance > 0 ):
-                return Parameter_Est[distance - 1]
-            else:
-                return 0
-        elif Parameter == "theta":
-            if (distance <= n and distance > 0 ):
-                return Parameter_Est[distance - 1]
-            elif (distance > n):
-                return Parameter_Est[n - 1]
-            else:
-                return 0
+        if (distance <= n and distance > 0 ):
+            return Parameter_Est[distance - 1]
         else:
             return 0
     
-
-
-    def EarlierOrder_PD(self,YBookRecDF,ZBookRecDF,priceA,priceB):
-        YFirstIndex = YBookRecDF.ArrivalTime.idxmin()
-        YTime = YBookRecDF.ArrivalTime.min() 
-        YOrderFirst = (YFirstIndex,YBookRecDF.loc[YFirstIndex])
-        
-        ZFirstIndex = ZBookRecDF.ArrivalTime.idxmin()
-        ZTime = ZBookRecDF.ArrivalTime.min()
-        ZOrderFirst = (ZFirstIndex,ZBookRecDF.loc[ZFirstIndex])
-        
-        if (YTime < ZTime):  
-            OrderIssued = self.OneShotZIOrderIssue_PD(YOrderFirst,priceA,priceB,"buy",self.qtysize)
-            OrderArrivalTime = YTime
-        elif (YTime > ZTime):
-            OrderIssued = self.OneShotZIOrderIssue_PD(ZOrderFirst,priceA,priceB,"sell",self.qtysize)
-            OrderArrivalTime = ZTime
+    
+    
+    def GetCancellationRate(self,Parameter_Est,distance):
+        n = len(Parameter_Est)
+        distance = int(round(distance,0)) 
+        if (distance <= n and distance > 0 ):
+            return Parameter_Est[distance - 1]
+        elif (distance > n):
+            return Parameter_Est[n - 1]
         else:
-            tempU = random.random()
-            if tempU < 0.5:
-                OrderIssued = self.OneShotZIOrderIssue_PD(YOrderFirst,priceA,priceB,"buy",self.qtysize)
-                OrderArrivalTime = YTime
-            else:
-                OrderIssued = self.OneShotZIOrderIssue_PD(ZOrderFirst,priceA,priceB,"sell",self.qtysize)
-                OrderArrivalTime = ZTime
-        output = (OrderIssued,OrderArrivalTime)
+            return 0
+    
+       
+
+    def random_index(self,rate):
+        # allocate randomly according to the probabilities in the list
+        start = 0
+        index = 0
+        randnum = random.random() * sum(rate)
+        for index, scope in enumerate(rate):
+            start += scope
+            if randnum <= start:
+                break
+        return index
+
+
+
+    def PDtoList(self,df):
+        # convert dataframe to a list, by column
+        list_df = []
+        for j in range(df.shape[1]):
+            list_df.extend(df[j].tolist())
+        return list_df
+
+
+
+    def ListSumUp(self,L):
+        return [sum(L[0:(j+1)]) for j in range(len(L))]
+    
+    
+    
+    def BidBirthRate(self,p,BidBook):
+        output=0
+        if p>self.priceA:
+            output = 0
+        elif p == self.priceA:
+            output = self.MU
+        else:
+            output = self.GetLimitOrderRate(self.LAMBDA, self.priceA-p)
+        return output
+
+    
+    def BidDeathRate(self,p,BidBook):
+        output=0
+        if p>self.priceA:
+            output = 0
+        elif p == self.priceA:
+            output = 0
+        else:
+            output = self.GetCancellationRate(self.THETA, self.priceA-p) * BidBook[p]
+        return output
+    
+    
+    
+    def AskBirthRate(self,p,AskBook):
+        output=0
+        if p<self.priceB:
+            output = 0
+        elif p == self.priceB:
+            output = self.MU
+        else:
+            output = self.GetLimitOrderRate(self.LAMBDA, p-self.priceB)
         return output
 
 
+    
+    def AskDeathRate(self,p,AskBook):
+        output=0
+        if p<self.priceB:
+            output = 0
+        elif p == self.priceB:
+            output = 0
+        else:
+            output = self.GetCancellationRate(self.THETA, p-self.priceB) * AskBook[p]
+        return output
 
-    def ZIAgentExecute(self,OMSinput):
-        # input from OMS
-        if (OMSinput.ask == 4560987):
-            priceA = round( self.PricePathDF.AskP_2[len(self.PricePathDF)-1] / self.PriceGridSize )
+
+    
+    def Execute(self,OMSinput):
+        # if (OMSinput.ask == 4560987):
+        if (OMSinput.ask == OMSinput.MAX_PRICE):
+            self.priceA = round( self.PricePathDF.AskP_2[len(self.PricePathDF)-1] / self.TICK_SIZE )
         else:
-            priceA = round( OMSinput.ask / self.PriceGridSize )
-        if (OMSinput.bid == 0):
-            priceB = round( self.PricePathDF.BidP_2[len(self.PricePathDF)-1] / self.PriceGridSize )
+            self.priceA = round( OMSinput.ask / self.TICK_SIZE )
+        
+        # if (OMSinput.bid == 0):
+        if (OMSinput.bid  == OMSinput.MIN_PRICE):
+            self.priceB = round( self.PricePathDF.BidP_2[len(self.PricePathDF)-1] / self.TICK_SIZE )
         else:
-            priceB = round( OMSinput.bid / self.PriceGridSize )   
-            
-        YBookTemp = [0 for _ in range(self.n+1)]
+            self.priceB = round( OMSinput.bid / self.TICK_SIZE )    
+        
+        
+        
+        BidBookList = [0 for _ in range(self.MAX_PRICE_LEVELS +1)]
         for j in OMSinput.bid_book:
-            YBookTemp[int(round(j.price/self.PriceGridSize))] = j.qty // self.qtysize
+            BidBookList[int(round(j.price/self.TICK_SIZE))] = j.qty // self.qtysize
         
-        ZBookTemp = [0 for _ in range(self.n+1)]
+        AskBookList = [0 for _ in range(self.MAX_PRICE_LEVELS +1)]
         for j in OMSinput.ask_book:
-            ZBookTemp[int(round(j.price/self.PriceGridSize))] = j.qty // self.qtysize
+            AskBookList[int(round(j.price/self.TICK_SIZE))] = j.qty // self.qtysize
+
+        BidBirthRateList = [self.BidBirthRate(j,BidBookList) for j in range(self.MAX_PRICE_LEVELS +1)]
+        BidDeathRateList = [self.BidDeathRate(j,BidBookList) for j in range(self.MAX_PRICE_LEVELS +1)]
+        AskBirthRateList = [self.AskBirthRate(j,AskBookList) for j in range(self.MAX_PRICE_LEVELS +1)]
+        AskDeathRateList = [self.AskDeathRate(j,AskBookList) for j in range(self.MAX_PRICE_LEVELS +1)]
+
+        RateDF = pd.DataFrame({0:BidBirthRateList,1:BidDeathRateList,2:AskBirthRateList,3:AskDeathRateList})
+        RateList = self.PDtoList(RateDF)
+        Index = self.random_index(RateList)
+        Row = Index % (self.MAX_PRICE_LEVELS +1)
+        Col = Index // (self.MAX_PRICE_LEVELS +1)
+
+        orderprice = Row
+
+        if Col == 0:
+            orderdirection = "buy"
+            if orderprice == self.priceA:
+                ordertype = "market"
+            else:
+                ordertype = "limit"
+        elif Col == 1:
+            orderdirection = "buy"
+            ordertype = "cancel"
+        elif Col == 2:
+            orderdirection = "sell"
+            if orderprice == self.priceB:
+                ordertype = "market"
+            else:
+                ordertype = "limit"
+        else:
+            orderdirection = "sell"
+            ordertype = "cancel"
         
-        # ZIagent generate
-        YBookRec = [ [0,0] for _ in range(self.n+1)]  # YBookRec[PriceLevel] = [Increment, ArrivalTime]
-        ZBookRec = [ [0,0] for _ in range(self.n+1)]  # ZBookRec[PriceLevel] = [Increment, ArrivalTime]
+        self.OrderIssued = ["ZIagent", ordertype, orderdirection, self.qtysize, \
+                       round(orderprice*self.TICK_SIZE,self.PriceDecimals)] 
+    
         
-        YBookRec = list( map(lambda x: self.OneShotBuyOrderUpdate(YBookTemp[x],x,priceA,\
-                                                                  self.deltaT,\
-                                                                  self.Mu,\
-                                                                  self.GetParameter(self.Lambda,priceA-x,"lambda"),\
-                                                                  self.GetParameter(self.Theta,priceA-x,"theta")),\
-                             [_ for _ in range(self.n+1)]) )    
-        ZBookRec = list( map(lambda x: self.OneShotSellOrderUpdate(ZBookTemp[x],x,priceB,\
-                                                                   self.deltaT,\
-                                                                   self.Mu,\
-                                                                   self.GetParameter(self.Lambda,x-priceB,"lambda"),\
-                                                                   self.GetParameter(self.Theta,x-priceB,"theta")),\
-                              [_ for _ in range(self.n+1)]) )
-       
-        YBookRecDF =  pd.DataFrame({"OrderStorge":[0],"QtyStorge":[0],"Increment":[0],"ArrivalTime":[1]},\
-                                   index = range(self.n+1),\
-                                   columns=['OrderStorge','QtyStorge','Increment','ArrivalTime'])
-        
-        ZBookRecDF =  pd.DataFrame({"OrderStorge":[0],"QtyStorge":[0],"Increment":[0],"ArrivalTime":[1]},\
-                                   index = range(self.n+1),\
-                                   columns=['OrderStorge','QtyStorge','Increment','ArrivalTime'])
-        
-        YBookRecDF.OrderStorge = YBookTemp
-        YBookRecDF.Increment = [j[0] for j in YBookRec]
-        YBookRecDF.ArrivalTime = [j[1] for j in YBookRec]
-        ZBookRecDF.OrderStorge = ZBookTemp
-        ZBookRecDF.Increment = [j[0] for j in ZBookRec]
-        ZBookRecDF.ArrivalTime = [j[1] for j in ZBookRec]
-           
-        output = self.EarlierOrder_PD(YBookRecDF,ZBookRecDF,priceA,priceB)   
-        self.OrderIssued = output[0]
-        self.OrderArrivalTime = output[1]
+        self.OrderArrivalTime = random.expovariate(sum(RateDF.sum()))
         
         self.ZIOrderBook.append(self.OrderIssued) 
         self.CurrentTime += self.OrderArrivalTime
         self.OrderCount += 1   
         
-        return  output
-
-
-
+        return  (self.OrderIssued,self.OrderArrivalTime)
+    
+    
+    
     def PricePathUpdate(self,OMSinput):
         AskPriceAppend = OMSinput.ask
         BidPriceAppend = OMSinput.bid
@@ -254,7 +230,7 @@ class ZIAgent(object):
     
 
 
-    def ZIAgentUpdate(self,OMSinput):
+    def Update(self,OMSinput):
         # update recording
         # self.ZIOrderBook.append(self.OrderIssued)     
         self.AskBookHistory.append(list(OMSinput.ask_book))
@@ -265,7 +241,7 @@ class ZIAgent(object):
  
 
 
-    def OrderBookPrint(self,Book,Booktype):
+    def ConsoleOrderBookPrint(self,Book,Booktype):
     # Booktype = "ask" or "bid"
         n = len(Book)
         PriceList = [" " for _ in range(n)]
@@ -279,17 +255,18 @@ class ZIAgent(object):
         
         if (Booktype.lower() == "ask") :
             for j in range(n-1,-1,-1):
-                print(Booktype,j+1," ",Book[j][0],"  ",Book[j][1])
+                # print(Booktype,j+1," ",Book[j][0],"  ",Book[j][1])
+                print(f"{Booktype} {j+1}  {Book[j][0]}  {Book[j][1]}")
         elif (Booktype.lower() == "bid") :
            for j in range(n):
-                print(Booktype,j+1," ",Book[j][0],"  ",Book[j][1])
+                # print(Booktype,j+1," ",Book[j][0],"  ",Book[j][1])
+                print(f"{Booktype} {j+1}  {Book[j][0]}  {Book[j][1]}")
         else:
             print("Booktype should be 'ask' or 'bid'! ")
-    #  OrderBookPrint(OMStest.LOB.askBook.askBook_public,"Ask")
 
 
 
-    def FileOrderBookPrint(self,Book,Booktype,txt):
+    def FileOrderBookPrint(self,Book,Booktype,OUTPUTTXT):
     # Booktype = "ask" or "bid"
         n = len(Book)
         PriceList = [" " for _ in range(n)]
@@ -303,37 +280,39 @@ class ZIAgent(object):
         
         if (Booktype.lower() == "ask") :
             for j in range(n-1,-1,-1):
-                print(Booktype,j+1," ",Book[j][0],"  ",Book[j][1],file=txt)
+                # print(Booktype,j+1," ",Book[j][0],"  ",Book[j][1], file=OUTPUTTXT)
+                print(f"{Booktype} {j+1}  {Book[j][0]}  {Book[j][1]}", file=OUTPUTTXT)
         elif (Booktype.lower() == "bid") :
             for j in range(n):
-                print(Booktype,j+1," ",Book[j][0],"  ",Book[j][1],file=txt)
+                # print(Booktype,j+1," ",Book[j][0],"  ",Book[j][1], file=OUTPUTTXT)
+                print(f"{Booktype} {j+1}  {Book[j][0]}  {Book[j][1]}", file=OUTPUTTXT)
         else:
-            print("Booktype should be 'ask' or 'bid'! ",file=txt)
+            print("Booktype should be 'ask' or 'bid'! ",file=OUTPUTTXT)
     
 
 
-    def ZIAgentConsolePrint(self,OMSinput):
-        print("at kth order:", self.OrderCount)   
+    def ConsolePrint(self,OMSinput):
+        print("No. of the order:", self.OrderCount)   
         print("the new order is:", self.OrderIssued)
         print("arrival time interval:", self.OrderArrivalTime )
         print("the cumulated time: ", self.CurrentTime)
         # print("the cumulated time: ", self.CurrentTime + self.OrderArrivalTime)
             
-        self.OrderBookPrint(OMSinput.ask_book,"ask")
-        self.OrderBookPrint(OMSinput.bid_book,"bid")
+        self.ConsoleOrderBookPrint(OMSinput.ask_book,"ask")
+        self.ConsoleOrderBookPrint(OMSinput.bid_book,"bid")
         print("askPrice:",OMSinput.ask)   
         print("bidPrice:",OMSinput.bid)    
         print("\n")
 
 
 
-    def ZIAgentFilePrint(self,OMSinput,OUTPUTTXT):
-        print("at kth order:", self.OrderCount,file=OUTPUTTXT)   
+    def FilePrint(self,OMSinput,OUTPUTTXT):
+        print("No. of the order:", self.OrderCount,file=OUTPUTTXT)   
         print("the new order is:", self.OrderIssued,file=OUTPUTTXT)
         print("arrival time interval:", self.OrderArrivalTime,file=OUTPUTTXT )
         print("the cumulated time: ", self.CurrentTime,file=OUTPUTTXT)
         # print("the cumulated time: ", self.CurrentTime +  self.OrderArrivalTime,file=OutputTxt)
-        
+    
         self.FileOrderBookPrint(OMSinput.ask_book,"ask",OUTPUTTXT)
         self.FileOrderBookPrint(OMSinput.bid_book,"bid",OUTPUTTXT)
         print("askPrice:",OMSinput.ask,file=OUTPUTTXT)   
@@ -394,10 +373,10 @@ class ZIAgent(object):
         if (AskPriceTemp == 4560987) or (BidPriceTemp == 0):
             SpreadN = 0
         else:
-            SpreadN = int(round((AskPriceTemp - BidPriceTemp)/self.PriceGridSize) - 1 )
+            SpreadN = int(round((AskPriceTemp - BidPriceTemp)/self.TICK_SIZE) - 1 )
         
         for j in range(1,SpreadN+1):
-            SpreadPriceList.append(BidPriceTemp + self.PriceGridSize * j )
+            SpreadPriceList.append(BidPriceTemp + self.TICK_SIZE * j )
         
         SpreadBookDF =  pd.DataFrame({"Price":[0]},\
                                    index = range(SpreadN),\
@@ -416,7 +395,8 @@ class ZIAgent(object):
         ax.set_ylabel('Qty')
         ax.set_title('Order Book')
         plt.xticks(ind,OrderBookDF.Price)
-        plt.title('After %d th order'%k)
+        # plt.title('After %d th order'%k)
+        plt.title(f"After {k}th order")
         ax.legend()
         plt.show()
     
@@ -428,7 +408,7 @@ class ZIAgent(object):
 
 
 
-    def ZIAgentPirceOrderPlot(self):
+    def PirceOrderPlot(self):
         plt.plot(self.PricePathDF.AskP_2,color ='green',lw=1) 
         plt.plot(self.PricePathDF.BidP_2,color ='red',lw=1) 
         # plt.plot(PricePathDF.MarketPrice,color ='yellow',lw=1) 
@@ -436,7 +416,9 @@ class ZIAgent(object):
         plt.xlabel('Order Sequence')
         plt.show()
 
-    def ZIAgentPirceTimePlot(self):
+
+
+    def PirceTimePlot(self):
         plt.plot(self.PricePathDF.CumulatedTime,self.PricePathDF.AskP_2,color ='green',lw=1)
         plt.plot(self.PricePathDF.CumulatedTime,self.PricePathDF.BidP_2,color ='red',lw=1)
         # plt.plot(PricePathDF.CumulatedTime,PricePathDF.MarketPrice,color ='yellow',lw=1)
@@ -445,10 +427,11 @@ class ZIAgent(object):
         plt.show() 
 
 
-    def ZIAgentArrivalTimeFrequencyPlot(self):
+
+    def ArrivalTimeFrequencyPlot(self):
         print("Average arrival time: ",np.mean(self.PricePathDF.ArrivalTime))
-        print("The frequency distribution of ArricalTime: \n")
         plt.hist(self.PricePathDF.ArrivalTime, bins = 20, range = (0,self.PricePathDF.ArrivalTime.max()) )
+        plt.title("The frequency distribution of ArricalTime:")
         plt.show()
-    
-    
+
+

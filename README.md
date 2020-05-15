@@ -34,3 +34,12 @@ The OMS recieves all the requests from agents, matches the orders and maintain t
 
 The Zero-Intelligence agent is an order generator which follows a stochastic model based on the paper [Cont et al. (2011)](http://www.columbia.edu/~ww2040/orderbook.pdf). It will output an order when it is given the current limit order book situation, and records the orders it has generated and how the limit order book changes.
 
+### 3. How to use simulator to test you strategy
+
+For a demo, please see *SimulatorEnvironment*.
+
+**Step 1:** Write your own strategy. e.g. see myStrategies.py
+
+**Step 2:** Add your strategies in the Simulator.py
+
+**Step 3:** Hit "run", and have fun!

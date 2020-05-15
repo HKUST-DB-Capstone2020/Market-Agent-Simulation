@@ -42,4 +42,4 @@ For a demo, please see *SimulatorEnvironment*.
 
 **Step 2:** Add your strategies in the Simulator.py
 
-**Step 3:** Hit "run", and have fun!
+**Step 3:** Hit "run", and have fun! 

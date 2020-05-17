@@ -12,8 +12,10 @@ from LOB.LOB import LimitOrderBook
 from OMS.OMS import OrderManagementSystem 
 
 
+
+
 class ZIAgent(object):
-    def __init__(self,NAME,OMSinput,MAX_PRICE_LEVELS,TICK_SIZE,MU,LAMBDA,THETA,\
+    def __init__(self,NAME,OMSinput,MAX_PRICE_LEVELS,TICK_SIZE,QTYSIZE,MU,LAMBDA,THETA,\
                  CurrentTime,OrderCount,ZIOrderBook):
         self.NAME = NAME
         self.OMSinput = OMSinput
@@ -22,7 +24,7 @@ class ZIAgent(object):
         self.MU = MU
         self.LAMBDA = LAMBDA
         self.THETA = THETA
-        self.qtysize = 1000
+        self.qtysize = QTYSIZE
         self.PriceDecimals = math.ceil(math.log10(1/TICK_SIZE))
         self.AskBookHistory = [list(OMSinput.ask_book)]
         self.BidBookHistory = [list(OMSinput.bid_book)]
@@ -166,10 +168,21 @@ class ZIAgent(object):
         BidDeathRateList = [self.BidDeathRate(j,BidBookList) for j in range(self.MAX_PRICE_LEVELS +1)]
         AskBirthRateList = [self.AskBirthRate(j,AskBookList) for j in range(self.MAX_PRICE_LEVELS +1)]
         AskDeathRateList = [self.AskDeathRate(j,AskBookList) for j in range(self.MAX_PRICE_LEVELS +1)]
-
+        
+        
         RateDF = pd.DataFrame({0:BidBirthRateList,1:BidDeathRateList,2:AskBirthRateList,3:AskDeathRateList})
         RateList = self.PDtoList(RateDF)
+        
+        """
         Index = self.random_index(RateList)
+        """
+        
+        SumRateList = sum(RateList)
+        # RateList_2 = [j/SumRateList for j in RateList] 
+        RateList_2 = list(map(lambda x: x/SumRateList , RateList))  
+        Index = int(np.random.choice(range(4*(self.MAX_PRICE_LEVELS+1)), 1, p=RateList_2))
+        
+        
         Row = Index % (self.MAX_PRICE_LEVELS +1)
         Col = Index // (self.MAX_PRICE_LEVELS +1)
 
@@ -433,5 +446,3 @@ class ZIAgent(object):
         plt.hist(self.PricePathDF.ArrivalTime, bins = 20, range = (0,self.PricePathDF.ArrivalTime.max()) )
         plt.title("The frequency distribution of ArricalTime:")
         plt.show()
-
-

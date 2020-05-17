@@ -15,8 +15,8 @@ from OMS.OMS import OrderManagementSystem
 
 
 class ZIAgent(object):
-    def __init__(self,NAME,OMSinput,MAX_PRICE_LEVELS,TICK_SIZE,QTYSIZE,MU,LAMBDA,THETA,\
-                 CurrentTime,OrderCount,ZIOrderBook):
+    def __init__(self,NAME,OMSinput,MAX_PRICE_LEVELS,TICK_SIZE,MU,LAMBDA,THETA,\
+                 CurrentTime,OrderCount,ZIOrderBook,QTYSIZE=1000):
         self.NAME = NAME
         self.OMSinput = OMSinput
         self.MAX_PRICE_LEVELS = MAX_PRICE_LEVELS

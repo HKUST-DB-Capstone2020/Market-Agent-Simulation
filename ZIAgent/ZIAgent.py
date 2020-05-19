@@ -1,22 +1,28 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Tue May 19 02:33:41 2020
 
-import os
-import sys
+@author: jackz
+"""
+
+
+
+# import os
+# import sys
 import random
 import math
 # import time
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-sys.path.append(os.path.pardir)
-from LOB.LOB import LimitOrderBook
+# sys.path.append(os.path.pardir)
+# from LOB.LOB import LimitOrderBook
 from OMS.OMS import OrderManagementSystem 
-
-
 
 
 class ZIAgent(object):
     def __init__(self,NAME,OMSinput,MAX_PRICE_LEVELS,TICK_SIZE,MU,LAMBDA,THETA,\
-                 CurrentTime,OrderCount,ZIOrderBook,QTYSIZE=1000):
+                 CurrentTime,OrderCount,ZIOrderBook,QTYSIZE=1000,ALPHA=0.52,K=1.92,):
         self.NAME = NAME
         self.OMSinput = OMSinput
         self.MAX_PRICE_LEVELS = MAX_PRICE_LEVELS
@@ -26,6 +32,10 @@ class ZIAgent(object):
         self.THETA = THETA
         self.qtysize = QTYSIZE
         self.PriceDecimals = math.ceil(math.log10(1/TICK_SIZE))
+        self.ALPHA = ALPHA
+        self.K = K
+        
+        self.LAMBDA_PowerLaw = np.array([self.K/(pow(j,self.ALPHA)) for j in range(1,6)] )
         self.AskBookHistory = [list(OMSinput.ask_book)]
         self.BidBookHistory = [list(OMSinput.bid_book)]
         self.PricePathDF =  pd.DataFrame({"AskPrice":[0.0],"AskP_2":[0.0],"BidPrice":[0.0],"BidP_2":[0.0],"MarketPrice":[0.0],\
@@ -40,185 +50,131 @@ class ZIAgent(object):
         self.ZIOrderBook = ZIOrderBook
         self.OrderArrivalTime = 0
         self.OrderIssued = []
-        
-
-    
-    
-    
-    def GetLimitOrderRate(self,Parameter_Est,distance):
-        n = len(Parameter_Est)
-        distance = int(round(distance,0))
-        if (distance <= n and distance > 0 ):
-            return Parameter_Est[distance - 1]
-        else:
-            return 0
-    
-    
-    
-    def GetCancellationRate(self,Parameter_Est,distance):
-        n = len(Parameter_Est)
-        distance = int(round(distance,0)) 
-        if (distance <= n and distance > 0 ):
-            return Parameter_Est[distance - 1]
-        elif (distance > n):
-            return Parameter_Est[n - 1]
-        else:
-            return 0
-    
-       
-
-    def random_index(self,rate):
-        # allocate randomly according to the probabilities in the list
-        start = 0
-        index = 0
-        randnum = random.random() * sum(rate)
-        for index, scope in enumerate(rate):
-            start += scope
-            if randnum <= start:
-                break
-        return index
 
 
-
-    def PDtoList(self,df):
-        # convert dataframe to a list, by column
-        list_df = []
-        for j in range(df.shape[1]):
-            list_df.extend(df[j].tolist())
-        return list_df
-
-
-
-    def ListSumUp(self,L):
-        return [sum(L[0:(j+1)]) for j in range(len(L))]
-    
-    
-    
-    def BidBirthRate(self,p,BidBook):
-        output=0
-        if p>self.priceA:
-            output = 0
-        elif p == self.priceA:
-            output = self.MU
-        else:
-            output = self.GetLimitOrderRate(self.LAMBDA, self.priceA-p)
-        return output
-
-    
-    def BidDeathRate(self,p,BidBook):
-        output=0
-        if p>self.priceA:
-            output = 0
-        elif p == self.priceA:
-            output = 0
-        else:
-            output = self.GetCancellationRate(self.THETA, self.priceA-p) * BidBook[p]
-        return output
-    
-    
-    
-    def AskBirthRate(self,p,AskBook):
-        output=0
-        if p<self.priceB:
-            output = 0
-        elif p == self.priceB:
-            output = self.MU
-        else:
-            output = self.GetLimitOrderRate(self.LAMBDA, p-self.priceB)
-        return output
-
-
-    
-    def AskDeathRate(self,p,AskBook):
-        output=0
-        if p<self.priceB:
-            output = 0
-        elif p == self.priceB:
-            output = 0
-        else:
-            output = self.GetCancellationRate(self.THETA, p-self.priceB) * AskBook[p]
-        return output
-
-
-    
+     
     def Execute(self,OMSinput):
-        # if (OMSinput.ask == 4560987):
         if (OMSinput.ask == OMSinput.MAX_PRICE):
-            self.priceA = round( self.PricePathDF.AskP_2[len(self.PricePathDF)-1] / self.TICK_SIZE )
+        # if (OMSinput.ask == 4560987):
+            self.priceA = int(round( self.PricePathDF.AskP_2[len(self.PricePathDF)-1] / self.TICK_SIZE ))
         else:
-            self.priceA = round( OMSinput.ask / self.TICK_SIZE )
+            self.priceA = int(round( OMSinput.ask / self.TICK_SIZE ))
         
-        # if (OMSinput.bid == 0):
         if (OMSinput.bid  == OMSinput.MIN_PRICE):
-            self.priceB = round( self.PricePathDF.BidP_2[len(self.PricePathDF)-1] / self.TICK_SIZE )
+        # if (OMSinput.bid == 0):
+            self.priceB = int(round( self.PricePathDF.BidP_2[len(self.PricePathDF)-1] / self.TICK_SIZE ))
         else:
-            self.priceB = round( OMSinput.bid / self.TICK_SIZE )    
+            self.priceB = int(round( OMSinput.bid / self.TICK_SIZE )) 
         
         
+        priceRange = np.arange(0, self.MAX_PRICE_LEVELS)
         
-        BidBookList = [0 for _ in range(self.MAX_PRICE_LEVELS +1)]
+        
+        """
+        ### use power law to calculate limit order rates
+        bidLimitRate = np.zeros(self.MAX_PRICE_LEVELS)
+        bidLimitRate[self.priceA-5:self.priceA] = self.LAMBDA_PowerLaw[::-1]
+
+        askLimitRate = np.zeros(self.MAX_PRICE_LEVELS)
+        askLimitRate[self.priceB+1 : self.priceB+1+5] = self.LAMBDA_PowerLaw   
+        
+        """
+        
+        # """
+        ### use Estimated values of limit order rates
+        bidLimitRate = np.zeros(self.MAX_PRICE_LEVELS)
+        bidLimitRate[self.priceA-5:self.priceA] = self.LAMBDA[::-1]
+        
+        askLimitRate = np.zeros(self.MAX_PRICE_LEVELS)
+        askLimitRate[self.priceB+1:self.priceB+1+5] = self.LAMBDA
+        # """
+        
+        
+        # cancel order rates
+        BidBookArray = np.zeros(self.MAX_PRICE_LEVELS,dtype=np.int64)
         for j in OMSinput.bid_book:
-            BidBookList[int(round(j.price/self.TICK_SIZE))] = j.qty // self.qtysize
-        
-        AskBookList = [0 for _ in range(self.MAX_PRICE_LEVELS +1)]
-        for j in OMSinput.ask_book:
-            AskBookList[int(round(j.price/self.TICK_SIZE))] = j.qty // self.qtysize
-
-        BidBirthRateList = [self.BidBirthRate(j,BidBookList) for j in range(self.MAX_PRICE_LEVELS +1)]
-        BidDeathRateList = [self.BidDeathRate(j,BidBookList) for j in range(self.MAX_PRICE_LEVELS +1)]
-        AskBirthRateList = [self.AskBirthRate(j,AskBookList) for j in range(self.MAX_PRICE_LEVELS +1)]
-        AskDeathRateList = [self.AskDeathRate(j,AskBookList) for j in range(self.MAX_PRICE_LEVELS +1)]
-        
-        
-        RateDF = pd.DataFrame({0:BidBirthRateList,1:BidDeathRateList,2:AskBirthRateList,3:AskDeathRateList})
-        RateList = self.PDtoList(RateDF)
-        
-        """
-        Index = self.random_index(RateList)
-        """
-        
-        SumRateList = sum(RateList)
-        # RateList_2 = [j/SumRateList for j in RateList] 
-        RateList_2 = list(map(lambda x: x/SumRateList , RateList))  
-        Index = int(np.random.choice(range(4*(self.MAX_PRICE_LEVELS+1)), 1, p=RateList_2))
-        
-        
-        Row = Index % (self.MAX_PRICE_LEVELS +1)
-        Col = Index // (self.MAX_PRICE_LEVELS +1)
-
-        orderprice = Row
-
-        if Col == 0:
-            orderdirection = "buy"
-            if orderprice == self.priceA:
-                ordertype = "market"
-            else:
-                ordertype = "limit"
-        elif Col == 1:
-            orderdirection = "buy"
-            ordertype = "cancel"
-        elif Col == 2:
-            orderdirection = "sell"
-            if orderprice == self.priceB:
-                ordertype = "market"
-            else:
-                ordertype = "limit"
-        else:
-            orderdirection = "sell"
-            ordertype = "cancel"
-        
-        self.OrderIssued = ["ZIagent", ordertype, orderdirection, self.qtysize, \
-                       round(orderprice*self.TICK_SIZE,self.PriceDecimals)] 
+            BidBookArray[int(round(j.price/self.TICK_SIZE))] = j.qty // self.qtysize
     
+        AskBookArray = np.zeros(self.MAX_PRICE_LEVELS,dtype=np.int64)
+        for j in OMSinput.ask_book:
+            AskBookArray[int(round(j.price/self.TICK_SIZE))] = j.qty // self.qtysize
+            
+        bidCancelTheta = self.THETA[-1] * (self.priceA-5 > priceRange) 
+        bidCancelTheta[self.priceA-5:self.priceA] = self.THETA[::-1]
+        bidCancelRate = bidCancelTheta * BidBookArray
         
-        self.OrderArrivalTime = random.expovariate(sum(RateDF.sum()))
+        askcancelTheta = self.THETA[-1] * (self.priceB+5 < priceRange) 
+        askcancelTheta[self.priceB+1 : self.priceB+1+5] = self.THETA
+        askCancelRate = askcancelTheta * AskBookArray    
+        
+        # market order rates
+        bidMarketOrderRate = self.MU
+        askMarketOrderRate = self.MU     
+        
+        
+        totalRate =   bidLimitRate.sum() + askLimitRate.sum()       \
+                    + bidCancelRate.sum() + askCancelRate.sum()         \
+                    + bidMarketOrderRate + askMarketOrderRate
+    
+        Pchoice = [ j/totalRate for j in [bidLimitRate.sum()  , askLimitRate.sum()  , \
+                                          bidCancelRate.sum() , askCancelRate.sum() , \
+                                          bidMarketOrderRate  , askMarketOrderRate] ]
+        index = np.random.choice(6, p = Pchoice )
+        
+        orderDirection = ""
+        orderType = ""
+        
+        
+        if index == 0:
+        # bid limit order
+            orderDirection = "buy"
+            orderType = "limit"
+            orderPrice = round(self.TICK_SIZE * np.random.choice(priceRange, p = bidLimitRate/bidLimitRate.sum()),self.PriceDecimals)
+        elif index == 1:
+        # ask limit order
+            orderDirection = "sell"
+            orderType = "limit"
+            orderPrice = round(self.TICK_SIZE * np.random.choice(priceRange, p = askLimitRate/askLimitRate.sum()),self.PriceDecimals)
+        elif index == 2:
+       # bid cancel order
+            orderDirection = "buy"
+            orderType = "cancel"
+            orderPrice = round(self.TICK_SIZE * np.random.choice(priceRange, p = bidCancelRate/bidCancelRate.sum()),self.PriceDecimals)
+        elif index == 3:
+        # ask cancel order
+            orderDirection = "sell"
+            orderType = "cancel"
+            orderPrice = round(self.TICK_SIZE * np.random.choice(priceRange, p = askCancelRate/askCancelRate.sum()),self.PriceDecimals)
+        elif index == 4:
+        # bid market order
+            orderDirection = "buy"
+            orderType = "market"
+            orderPrice = round(self.TICK_SIZE * self.priceA,self.PriceDecimals)     
+        elif index == 5:
+        # ask market order
+            orderDirection = "sell"
+            orderType = "market"
+            orderPrice = round(self.TICK_SIZE * self.priceB,self.PriceDecimals)
+        else:
+            print("ERROR in ZIAgent Order Execute at {self.OrderCount}! ")
+            print(index)
+            print(f"Pchoice {Pchoice}")
+            print(f"BidBookArray {BidBookArray}")
+            print(f"AskBookArray {AskBookArray}")
+            print(f"bidLimitRate  {bidLimitRate}")   
+            print(f"askLimitRate  {askLimitRate}") 
+            print(f"bidCancelRate  {bidCancelRate}")
+            print(f"askCancelRate  {askCancelRate}")
+        
+        
+        self.OrderIssued = ["ZIagent", orderType, orderDirection, self.qtysize, np.float(orderPrice)]
+        self.OrderArrivalTime = random.expovariate(totalRate)
         
         self.ZIOrderBook.append(self.OrderIssued) 
         self.CurrentTime += self.OrderArrivalTime
-        self.OrderCount += 1   
-        
+        self.OrderCount += 1       
         return  (self.OrderIssued,self.OrderArrivalTime)
-    
+        
     
     
     def PricePathUpdate(self,OMSinput):
@@ -226,19 +182,20 @@ class ZIAgent(object):
         BidPriceAppend = OMSinput.bid
         MarketPriceAppend = (AskPriceAppend + BidPriceAppend) /2
         # MarketPriceAppend = OMStest.lastprice
-        if (AskPriceAppend == 4560987):
+        if (AskPriceAppend == OMSinput.MAX_PRICE):
             AskP2Append = self.PricePathDF.AskP_2[len(self.PricePathDF)-1]
         else:
             AskP2Append =  AskPriceAppend   
-        if (BidPriceAppend == 0):
+        if (BidPriceAppend == OMSinput.MIN_PRICE):
             BidP2Append = self.PricePathDF.BidP_2[len(self.PricePathDF)-1]
         else:
             BidP2Append = BidPriceAppend
   
-        PricePathAppend = pd.Series([AskPriceAppend,AskP2Append,BidPriceAppend,BidP2Append,MarketPriceAppend,\
+        PricePathAppend = pd.DataFrame([AskPriceAppend,AskP2Append,BidPriceAppend,BidP2Append,MarketPriceAppend,\
                                   #   self.OrderArrivalTime,self.CurrentTime+self.OrderArrivalTime], \
-                                      self.OrderArrivalTime,self.CurrentTime], \
-                   index = ['AskPrice','AskP_2','BidPrice','BidP_2','MarketPrice','ArrivalTime','CumulatedTime'])
+                                      self.OrderArrivalTime,self.CurrentTime]).T
+        PricePathAppend.columns = self.PricePathDF.columns
+        
         return PricePathAppend
     
 
@@ -246,9 +203,10 @@ class ZIAgent(object):
     def Update(self,OMSinput):
         # update recording
         # self.ZIOrderBook.append(self.OrderIssued)     
+        
         self.AskBookHistory.append(list(OMSinput.ask_book))
         self.BidBookHistory.append(list(OMSinput.bid_book))
-        self.PricePathDF = self.PricePathDF.append(self.PricePathUpdate(OMSinput),ignore_index=True)   
+        self.PricePathDF = pd.concat([self.PricePathDF,self.PricePathUpdate(OMSinput)],ignore_index=True)        
         # self.CurrentTime += self.OrderArrivalTime
         # self.OrderCount += 1        
  
@@ -446,3 +404,8 @@ class ZIAgent(object):
         plt.hist(self.PricePathDF.ArrivalTime, bins = 20, range = (0,self.PricePathDF.ArrivalTime.max()) )
         plt.title("The frequency distribution of ArricalTime:")
         plt.show()
+    
+    
+    
+    
+    

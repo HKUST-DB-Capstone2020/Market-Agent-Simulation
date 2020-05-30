@@ -23,7 +23,7 @@ if __name__ == "__main__":
         for pct in [0.01,0.05,0.1,0.2]:
             print(dir,pct)
             text = ""
-            for i in range(100):
+            for i in range(1000):
                 # if i % 10 == 0:
                 print(i)
                 # initial settings
@@ -55,7 +55,7 @@ if __name__ == "__main__":
                 starttime=time.perf_counter()
 
                 OMSTest = OrderManagementSystem(priceA_ini,priceB_ini,PriceGridSize,5,price_ini)
-                ZIAgentTest = ZIAgent("ZIagent",OMSTest,n,PriceGridSize,Mu_Est,Lambda_Est,Theta_Est,deltaT,\
+                ZIAgentTest = ZIAgent("ZIagent",OMSTest,n,PriceGridSize,Mu_Est,Lambda_Est,Theta_Est,\
                                       CurrentTime,OrderCount,ZIOrderBook)
 
 
@@ -69,9 +69,9 @@ if __name__ == "__main__":
                 # during the trading period
                 while (ZIAgentTest.CurrentTime <= TimeHorizon):
 
-                    ZIAgentTest.ZIAgentExecute(OMSTest)     # execute ZIAgent generator
+                    ZIAgentTest.Execute(OMSTest)     # execute ZIAgent generator
                     OMSTest.receive(ZIAgentTest.OrderIssued)  # output to OMS
-                    ZIAgentTest.ZIAgentUpdate(OMSTest)  # update ZIAgentTest
+                    ZIAgentTest.Update(OMSTest)  # update ZIAgentTest
 
                     time_prop = (0.01 * TimeHorizon + ZIAgentTest.CurrentTime) / TimeHorizon
 

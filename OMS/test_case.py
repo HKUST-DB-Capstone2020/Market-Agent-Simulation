@@ -209,15 +209,17 @@ class TestClass:
 		OMS.record("strategy")
 		OMS.receive(["strategy", "limit", "sell", 2300, 9.7])
 		a = OMS.strategy_record.filled_order == [['sell', 9.98, 1000], ['sell', 9.97, 1000], ['sell', 9.96, 300]]
+		d = OMS.strategy_record.position == -2300
 		OMS.receive(["strategy", "limit", "sell", 2300, 10.7])
 		b = OMS.strategy_record.active_order[10.7] == [2300, 'sell']
 		OMS.receive(["strategy", "cancel", "sell", 2300, 10.7])
 		c = OMS.strategy_record.active_order == {}
-
+		e = OMS.strategy_record.position == -2300
 		assert a
 		assert b
 		assert c
-
+		assert d
+		assert e
 
 	def test_market_record(self):
 		OMS = OrderManagementSystem(10.0, 9.98, 0.01, 5, 9.7)
@@ -225,14 +227,18 @@ class TestClass:
 		OMS.receive(["strategy", "market", "buy", 2300, 9.7])
 		OMS.receive(["ZIagent", "market", "buy", 2300, 9.7])
 		a = OMS.strategy_record.filled_order == [['buy', 10.00, 1000], ['buy', 10.01, 1000], ['buy', 10.02, 300]]
+		d = OMS.strategy_record.position == 2300
 		OMS.receive(["strategy", "market", "sell", 1300, 10.7])
 		OMS.receive(["ZIagent", "limit", "buy", 2300, 9.7])
 		OMS.receive(["ZIagent", "cancel", "buy", 2300, 9.97])
 		b = OMS.strategy_record.active_order == {}
 		c = OMS.strategy_record.filled_order == [['buy', 10.00, 1000], ['buy', 10.01, 1000], ['buy', 10.02, 300], ['sell', 9.98, 1000], ['sell', 9.97, 300]]
+		e = OMS.strategy_record.position == 1000
 		assert a
 		assert b
 		assert c
+		assert d
+		assert e
 
 if __name__ == "__main__":
 	pytest.main()

@@ -118,9 +118,8 @@ class OrderManagementSystem:
                     (self.__para * self.action.price < self.__para * self.__another_book.nearPrice ):
                 break
             self.exe_order()
-            if self.is_record:
-                if self.action.agent == self.strategy_record.strategy_name:
-                    self.strategy_record.match_market_order(self.action, self.trade_vol, self.trade_price )
+            if self.is_record and self.action.agent == self.strategy_record.strategy_name:
+                self.strategy_record.match_market_order(self.action, self.trade_vol, self.trade_price )
                 self.strategy_record.match_order(self.cross_info, self.trade_price, self.action.direction)
         if self.action.type == "market":
             self.action.quantity = 0

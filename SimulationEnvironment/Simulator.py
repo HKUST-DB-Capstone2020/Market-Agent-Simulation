@@ -13,7 +13,7 @@ sys.path.append(os.path.pardir)
 
 from OMS.OMS import OrderManagementSystem
 from ZIAgent.ZIAgent import ZIAgent
-from myStrategies import *
+from Strategies import *
 
 class State:
     
@@ -140,19 +140,19 @@ if __name__ == '__main__':
     env  = Simulator()
     
     # which strategy to use
-    strat = "myStrategy_demo1"
-    if strat == "myStrategy_demo1":
+    strat = "Strategy_demo1"
+    if strat == "Strategy_demo1":
         algo = myStrategy_demo1(para1 = 0.5,  # for demenstration purpose
                                 para2 = 0.1)  # for demenstration purpose
     
-    episodes      = 1
+    episodes      = 1_000
     shortfall     = episodes * [0.0]
     ref_revenue   = episodes * [0.0]
     strat_revenue = episodes * [0.0]
     
+    # time for running program
+    RunningStartTime=time.perf_counter()
     for episode in range(episodes):        
-        # time for running program
-        RunningStartTime=time.perf_counter()
         
         # reset state and algos
         state = env.reset()
@@ -172,13 +172,12 @@ if __name__ == '__main__':
         
         # env.ZIAgent.ZIAgentPirceOrderPlot()
         env.ZIAgent.PirceTimePlot()
-        
-        RunningTime = round(time.perf_counter()-RunningStartTime,3)
-        print(f"the running cost: {RunningTime} seconds")
         print("Total shares executed: ", qty_count)
         
         shortfall[episode], ref_revenue[episode], strat_revenue[episode] = env.slippage()
     
+    RunningTime = round(time.perf_counter()-RunningStartTime,3)
+    print(f"the running cost: {RunningTime} seconds")
     result = pd.DataFrame()
     result['shortfall'] = shortfall
     result['ref_revenue'] = ref_revenue

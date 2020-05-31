@@ -26,16 +26,21 @@ class Algo:  # base class
         return strategy_order, self.done
 
 
-class myStrategy_demo1(Algo):
+class Strategy_demo1(Algo):
+    
+    __init__base = Algo.__init__
     
     def __init__(self, para1, para2):
         
+        self.__init__base()
         '''strategy params'''
         self.para1 = para1
         self.para2 = para2
         self.done  = False
         
     def reset(self):
+        
+        self.__init__base()
         self.__init__(self.para1, self.para2)
     
     def action(self, state):

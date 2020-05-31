@@ -1,9 +1,13 @@
 import collections
+import copy
+
+isASK = 1
+isBID = -1
 
 class Book:
     
     def __init__(self, bidORask, nearPrice, tick, orderLevel, init_qty = 1000):
-        self.bidORask     = 1   if bidORask == 'ask' else -1
+        self.bidORask     = isASK   if bidORask == 'ask' else isBID
         self.prc_qty      = collections.namedtuple('prc_qty',['price','qty'])
         self.ID_qty       = collections.namedtuple('ID_qty', ['ID','qty'])
         self.nearPrice    = nearPrice
@@ -135,7 +139,7 @@ class Book:
         
         if self.Book_public[0].qty == 0:   ## nearest level is eaten up
             
-            result_record = self.Book_private[0].copy()
+            result_record = copy.deepcopy(self.Book_private[0])
             
             # judge if the book becomes empty after this cross
             if self.isEmpty():
@@ -162,7 +166,7 @@ class Book:
             qty_to_cancel = quantity
             while qty_to_cancel > 0:
                 if self.Book_private[0][0].qty < qty_to_cancel: # first guy in the queue is not enough to cancel
-                    result_record.append( self.Book_private[0][0].copy() )
+                    result_record.append( copy.deepcopy(self.Book_private[0][0]) )
                     qty_to_cancel -= self.Book_private[0][0].qty
                     self.Book_private[0].pop(0)
                 else:

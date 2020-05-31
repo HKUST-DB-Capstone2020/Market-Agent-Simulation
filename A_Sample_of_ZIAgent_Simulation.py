@@ -55,6 +55,7 @@ if __name__ == "__main__":
                 starttime=time.perf_counter()
 
                 OMSTest = OrderManagementSystem(priceA_ini,priceB_ini,PriceGridSize,5,price_ini)
+                OMSTest.record("strategy")
                 ZIAgentTest = ZIAgent("ZIagent",OMSTest,n,PriceGridSize,Mu_Est,Lambda_Est,Theta_Est,\
                                       CurrentTime,OrderCount,ZIOrderBook)
 
@@ -65,7 +66,7 @@ if __name__ == "__main__":
                 vol_per_order = int(avg_daily_vol*pct / 10)
                 # pct = 0.01
                 target_vol = avg_daily_vol*pct
-                total_buy_vol = 0
+                # total_buy_vol = 0
                 # during the trading period
                 while (ZIAgentTest.CurrentTime <= TimeHorizon):
 
@@ -75,12 +76,12 @@ if __name__ == "__main__":
 
                     time_prop = (0.01 * TimeHorizon + ZIAgentTest.CurrentTime) / TimeHorizon
 
-                    rem_qty = target_vol - total_buy_vol
+                    rem_qty = target_vol - OMSTest.strategy_record.position
 
-                    this_order_volume = min(vol_per_order * int((target_vol * time_prop - total_buy_vol) / vol_per_order), rem_qty)
+                    this_order_volume = min(vol_per_order * int((target_vol * time_prop - OMSTest.strategy_record.position) / vol_per_order), rem_qty)
                     if this_order_volume > 0:
-                        total_buy_vol += this_order_volume
-                        OMSTest.receive(["strategy", "market", dir, this_order_volume, 0])
+                        OMSTest.receive(["strategy", "limit", dir, this_order_volume, OMSTest.bid-OMSTest.tick])
+                        # OMSTest.receive(["strategy", "market", dir, this_order_volume, 0])
                         buy_list_price += OMSTest.execPrice
                         buy_list_volume += OMSTest.execQty
                         # print(ZIAgentTest.CurrentTime)

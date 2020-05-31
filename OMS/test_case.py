@@ -240,6 +240,42 @@ class TestClass:
 		assert d
 		assert e
 
+	def test_market_record2(self):
+		OMS = OrderManagementSystem(10.0, 9.99, 0.01, 5, 9.7)
+		OMS.record("strategy")
+		OMS.receive(["strategy", "limit", "buy", 1200, 10.0])
+		a = OMS.strategy_record.active_order == {10.0: [200, 'buy']}
+		b = OMS.strategy_record.position == 1000
+		c = OMS.strategy_record.filled_order == [['buy', 10.0, 1000]]
+		OMS.receive(["strategy", "market", "sell", 200, 9.7])
+		d = OMS.strategy_record.active_order == {}
+		e = OMS.strategy_record.position == 1000
+		f = OMS.strategy_record.filled_order == [['buy', 10.0, 1000], ['sell', 10.0, 200], ['buy', 10.0, 200]]
+		assert a
+		assert b
+		assert c
+		assert d
+		assert e
+		assert f
+
+	def test_market_record3(self):
+		OMS = OrderManagementSystem(10.0, 9.99, 0.01, 5, 9.7)
+		OMS.record("strategy")
+		OMS.receive(["strategy", "limit", "buy", 1200, 10.0])
+		a = OMS.strategy_record.active_order == {10.0: [200, 'buy']}
+		b = OMS.strategy_record.position == 1000
+		c = OMS.strategy_record.filled_order == [['buy', 10.0, 1000]]
+		OMS.receive(["ZIagent", "market", "sell", 200, 9.7])
+		d = OMS.strategy_record.active_order == {}
+		e = OMS.strategy_record.position == 1200
+		f = OMS.strategy_record.filled_order == [['buy', 10.0, 1000], ['buy', 10.0, 200]]
+		assert a
+		assert b
+		assert c
+		assert d
+		assert e
+		assert f
+
 if __name__ == "__main__":
 	pytest.main()
 

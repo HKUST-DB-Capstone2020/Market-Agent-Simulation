@@ -28,16 +28,18 @@ class strategy_record:
     def match_order(self, info, price, direction):
         for order_record in info:
             if order_record.ID == self.strategy_name:
-                if price in  self.active_order.keys():
+                if price in self.active_order.keys():
                     if (direction == "buy") and (self.active_order[price][-1] == "sell"):
                         self.active_order[price][0] -= order_record.qty
+                        self.position -= order_record.qty
                         self.filled_order.append([self.active_order[price][-1], price, order_record.qty])
-                        if self.active_order[price][0] < 0.5 *self.min_volume_unit:
+                        if abs(self.active_order[price][0]) < 0.5 *self.min_volume_unit:
                             del self.active_order[price]
                     elif (direction == "sell") and (self.active_order[price][-1] == "buy"):
-                        self.active_order[price][0] += order_record.qty
+                        self.active_order[price][0] -= order_record.qty
+                        self.position += order_record.qty
                         self.filled_order.append([self.active_order[price][-1], price, order_record.qty])
-                        if self.active_order[price][0] < 0.5 *self.min_volume_unit:
+                        if abs(self.active_order[price][0]) < 0.5 *self.min_volume_unit:
                             del self.active_order[price]
                 else:
                     "Record error. No such price record!"
@@ -118,8 +120,9 @@ class OrderManagementSystem:
                     (self.__para * self.action.price < self.__para * self.__another_book.nearPrice ):
                 break
             self.exe_order()
-            if self.is_record and self.action.agent == self.strategy_record.strategy_name:
-                self.strategy_record.match_market_order(self.action, self.trade_vol, self.trade_price )
+            if self.is_record:
+                if self.action.agent == self.strategy_record.strategy_name:
+                    self.strategy_record.match_market_order(self.action, self.trade_vol, self.trade_price )
                 self.strategy_record.match_order(self.cross_info, self.trade_price, self.action.direction)
         if self.action.type == "market":
             self.action.quantity = 0

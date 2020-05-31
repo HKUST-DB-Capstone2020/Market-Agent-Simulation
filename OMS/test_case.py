@@ -240,6 +240,13 @@ class TestClass:
 		assert d
 		assert e
 
+	def test_market_record(self):
+		OMS = OrderManagementSystem(10.0, 9.99, 0.01, 5, 9.7)
+		OMS.record("strategy")
+		OMS.receive(["strategy", "market", "buy", 1000, 9.7])
+		OMS.receive(["strategy", "limit", "buy", 1000, 10.0])
+		print(OMS.strategy_record.active_order)
+
 if __name__ == "__main__":
 	pytest.main()
 

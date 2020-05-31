@@ -44,12 +44,14 @@ For a demo, please see *SimulationEnvironment*.
 
 **Step 3:** Hit "run", and have fun! 
 
-### Appendix: Stats about the simulated market
+### Appendix: Stats of the simulated market
 
-**Time horizon for simulation:** 100 time units, denoted as 1 "day". (For the meaning of 1 time units under physical measure, please refer to the original paper [Cont et al. (2011)](http://www.columbia.edu/~ww2040/orderbook.pdf))
+**Time horizon for simulation:** 100 time units, denoted as 1 "day". 
+
+(For the meaning of 1 time units under physical measure, please refer to the original paper [Cont et al. (2011)](http://www.columbia.edu/~ww2040/orderbook.pdf))
 
 **Episodes**: 10,000
 
-(1) ADTV: 375,861 shares
+(1) ADTV: 375,520 shares
 
-(2) Daily vol: 
+(2) Daily vol: 9.276%

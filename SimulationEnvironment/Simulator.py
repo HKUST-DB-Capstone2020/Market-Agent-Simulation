@@ -19,6 +19,7 @@ class State:
     
     def __init__(self, ask, bid, ask_book, bid_book, 
                  trade_price_record, trade_vol_record, 
+                 strategy_record, execPrc, execQty,
                  current_time, lastTime, time_horizon):
         
         self.ask                = ask
@@ -27,6 +28,9 @@ class State:
         self.bid_book           = bid_book
         self.trade_price_record = trade_price_record
         self.trade_vol_record   = trade_vol_record
+        self.strategy_record    = strategy_record
+        self.execPrc            = execPrc
+        self.execQty            = execQty
         self.current_time       = current_time
         self.lastTime           = lastTime
         self.time_horizon       = time_horizon
@@ -86,12 +90,12 @@ class Simulator:
                              bid_book           = self.OMSTest.bid_book,
                              trade_price_record = self.OMSTest.trade_price_record, 
                              trade_vol_record   = self.OMSTest.trade_vol_record, 
+                             strategy_record    = self.OMSTest.strategy_record, 
+                             execPrc            = self.OMSTest.execPrc
+                             execQty            = self.OMSTest.execQty
                              current_time       = self.ZIAgent.CurrentTime,
                              lastTime           = self.lastTime,
                              time_horizon       = self.TimeHorizon)
-        
-        self.exec_price  = []
-        self.exec_qty    = []
 
     def reset(self):
         self.__init__()
@@ -100,12 +104,7 @@ class Simulator:
     def step(self, action):
         
         if action: # action is not empty list
-            len_before = len(self.state.trade_price_record)
             self.OMSTest.receive(action)
-            len_after = len(self.state.trade_price_record)
-            
-            self.exec_price += self.state.trade_price_record[len_before-len_after:] 
-            self.exec_qty   += self.state.trade_vol_record[len_before-len_after:] 
         
         self.state.lastTime = self.state.current_time
         self.ZIAgent.Execute(self.OMSTest)              # execute ZIAgent generator
@@ -123,13 +122,19 @@ class Simulator:
         self.state.bid_book           = self.OMSTest.bid_book
         self.state.trade_price_record = self.OMSTest.trade_price_record
         self.state.trade_vol_record   = self.OMSTest.trade_vol_record
+        self.state.strategy_record    = self.OMSTest.strategy_record
+        self.state.execPrc            = self.OMSTest.execPrc
+        self.state.execQty            = self.OMSTest.execQty
         self.state.current_time       = self.ZIAgent.CurrentTime
         self.time_horizon             = self.TimeHorizon
 
     def slippage(self):
         
-        strat_revenue = np.dot(np.array(self.exec_price), np.array(self.exec_qty))
-        ref_revenue   = np.sum( self.ref_price * np.array(self.exec_qty) )
+        strat_revenue = 0
+        ref_revenue   = 0
+        for filled_order in self.OMSTest.strategy_record.filled_order:
+            strat_revenue += filled_order[1]*filled_order[2]  #1:price, 2: qty
+            ref_revenue += self.ref_price*filled_order[2]
         return strat_revenue - ref_revenue, ref_revenue, strat_revenue
 
 
@@ -145,34 +150,29 @@ if __name__ == '__main__':
         algo = myStrategy_demo1(para1 = 0.5,  # for demenstration purpose
                                 para2 = 0.1)  # for demenstration purpose
     
-    episodes      = 1_000
+    episodes      = 10_000
     shortfall     = episodes * [0.0]
     ref_revenue   = episodes * [0.0]
     strat_revenue = episodes * [0.0]
     
     # time for running program
-    RunningStartTime=time.perf_counter()
+    RunningStartTime = time.perf_counter()
     for episode in range(episodes):        
         
         # reset state and algos
         state = env.reset()
         algo.reset()
         done = False
-        qty_count = 0
     
         while (state.current_time < state.time_horizon) and not done:
             # run the algorithm for one episode
             algo_action, done = algo.action(state)                
-            if algo_action:
-                qty_count += algo_action[-2]
-                print(round(state.current_time,3), algo_action)
             
             # state, reward, done, info = env.step(action)
             state = env.step(algo_action)
         
         # env.ZIAgent.ZIAgentPirceOrderPlot()
         env.ZIAgent.PirceTimePlot()
-        print("Total shares executed: ", qty_count)
         
         shortfall[episode], ref_revenue[episode], strat_revenue[episode] = env.slippage()
     

@@ -276,6 +276,18 @@ class TestClass:
 		assert e
 		assert f
 
+	def test_market_record4(self):
+		OMS = OrderManagementSystem(10.0, 9.99, 0.01, 5, 9.7)
+		OMS.record("strategy")
+		OMS.receive(["strategy", "limit", "sell", 1200, 9.99])
+		a = OMS.strategy_record.active_order == {9.99: [200, 'sell']}
+		b = OMS.strategy_record.position == -1000
+		c = OMS.strategy_record.filled_order == [['sell', 9.99, 1000]]
+
+		assert a
+		assert b
+		assert c
+
 if __name__ == "__main__":
 	pytest.main()
 

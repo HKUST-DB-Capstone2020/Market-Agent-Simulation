@@ -52,7 +52,7 @@ For a demo, please see *SimulationEnvironment*.
 
 **Episodes**: 10,000
 
-(1) ADTV: 375,520 shares
+(1) ADTV: 187,760 shares
 
 (2) Initial quantity: 10%ADTV (this parameter is for the fair comparison of different strategies)
 

@@ -19,11 +19,12 @@ from ZIAgent.ZIAgent import ZIAgent
 
 if __name__ == "__main__":
     result = []
-    for dir in ["buy", "sell"]:
-        for pct in [0.01,0.05,0.1,0.2]:
+    count = 0
+    for dir in ["buy"]:
+        for pct in [0.1]:
             print(dir,pct)
             text = ""
-            for i in range(1000):
+            for i in range(10000):
                 # if i % 10 == 0:
                 print(i)
                 # initial settings
@@ -62,25 +63,24 @@ if __name__ == "__main__":
 
                 buy_list_price = []
                 buy_list_volume = []
-                avg_daily_vol = 200000
+                avg_daily_vol = 187760
                 vol_per_order = int(avg_daily_vol*pct / 10)
                 # pct = 0.01
                 target_vol = avg_daily_vol*pct
                 # total_buy_vol = 0
                 # during the trading period
                 while (ZIAgentTest.CurrentTime <= TimeHorizon):
-
                     ZIAgentTest.Execute(OMSTest)     # execute ZIAgent generator
                     OMSTest.receive(ZIAgentTest.OrderIssued)  # output to OMS
                     ZIAgentTest.Update(OMSTest)  # update ZIAgentTest
 
                     time_prop = (0.01 * TimeHorizon + ZIAgentTest.CurrentTime) / TimeHorizon
-
                     rem_qty = target_vol - OMSTest.strategy_record.position
-
+                    # print(ZIAgentTest.CurrentTime, OMSTest.strategy_record.position)
                     this_order_volume = min(vol_per_order * int((target_vol * time_prop - OMSTest.strategy_record.position) / vol_per_order), rem_qty)
                     if this_order_volume > 0:
-                        OMSTest.receive(["strategy", "limit", dir, this_order_volume, OMSTest.bid-OMSTest.tick])
+                        OMSTest.receive(["strategy", "market", dir, this_order_volume, OMSTest.bid-OMSTest.tick])
+                        # print(["strategy", "limit", dir, this_order_volume, OMSTest.bid-OMSTest.tick])
                         # OMSTest.receive(["strategy", "market", dir, this_order_volume, 0])
                         buy_list_price += OMSTest.execPrice
                         buy_list_volume += OMSTest.execQty
@@ -92,10 +92,19 @@ if __name__ == "__main__":
                     # if (ZIAgentTest.OrderCount % 200 == 0 ):
                     #     print(ZIAgentTest.OrderCount, end=" ")   # show the progress
 
+                # while ZIAgentTest.CurrentTime <= TimeHorizon:
+                #     ZIAgentTest.Execute(OMSTest)  # execute ZIAgent generator
+                #     OMSTest.receive(ZIAgentTest.OrderIssued)  # output to OMS
+                #     ZIAgentTest.Update(OMSTest)
+                #     rem_qty = int(target_vol - OMSTest.strategy_record.position)
+                #     if rem_qty>0:
+                #         OMSTest.receive(["strategy", "market", dir, rem_qty, OMSTest.bid - OMSTest.tick])
+                #         # buy_list_price += OMSTest.execPrice
+                #         # buy_list_volume += OMSTest.execQty
                 # OutputTxt.close()
                 # print("avg_price:",sum(buy_list_price[i]*buy_list_volume[i] for i in range(len(buy_list_price)))/sum(buy_list_volume))
                 result.append(sum(buy_list_price[i]*buy_list_volume[i] for i in range(len(buy_list_price)))/sum(buy_list_volume))
-                print(sum(buy_list_volume) == target_vol, sum(OMSTest.trade_vol_record), buy_list_price)
+                # print(sum(buy_list_volume) == target_vol, sum(OMSTest.trade_vol_record), buy_list_price)
                 # print("target:%s, buy:%s"%(target_vol, sum(buy_list_volume)))
                 # report general results
                 endtime=time.perf_counter()
@@ -108,10 +117,17 @@ if __name__ == "__main__":
                 # print('0 in bid prices',ZIAgentTest.unique_index(ZIAgentTest.PricePathDF.BidPrice,0))
                 #
                 # print("the running cost:",endtime-starttime, " seconds")
-                text += "%s\n"%result[-1]
-        # if i % 100 == 99:
-            with open(f"result_{dir}_{pct}.txt","w") as f:
-                f.write(text)
+                # cost = 0
+                # volume = 0
+                # for i in OMSTest.strategy_record.filled_order:
+                #     volume += i[2]
+                #     cost += i[2]*i[1]
+                text += "%s\n"%(result[-1])
+                print(result[-1])
+                if i % 100 == 99:
+                    with open(f"result_paper/result_{dir}_{pct}_{count}.txt","w") as f:
+                        f.write(text)
+                    count += 1
 
 
 

@@ -42,7 +42,7 @@ class Simulator:
         
         self.MAX_PRICE_LEVELS = 200  # total number of price grids
         self.TICK_SIZE        = 0.1  # usually 1 or 0.1 or 0.01
-        self.TimeHorizon      = 330  # 330min=1day (HKEX: 9:30am-12pm, 13pm-16pm)
+        self.TimeHorizon      = 100  # 330min=1day (HKEX: 9:30am-12pm, 13pm-16pm)
         self.qtysize          = 1000
 
         self.PRICE_START      = 9.7

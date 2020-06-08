@@ -4,6 +4,11 @@ Created on Mon Apr 27 02:02:29 2020
 
 @author: Lenovo
 """
+
+"""
+Given a time horizon, the Vertical Test will examine whether orders generated during this period is normal, 
+and further estimate parameter MU and LAMBDA. Vertical test cannot estimate parameter THETA.
+"""
 #import numpy as np
 import pandas as pd
 import time
@@ -13,19 +18,24 @@ sys.path.append(os.path.pardir)
 # from LOB.LOB import LimitOrderBook
 
 
-os.chdir("C:\\Users\\Lenovo\\Desktop")
+#os.chdir("C:\\Users\\Lenovo\\Desktop")
 
 from OMS.OMS import OrderManagementSystem 
-from ZIAgent import ZIAgent
+from ZIAgent.ZIAgent import ZIAgent
 
 # Analysis for limit and market order
 class VerticalAnalysis:
     def __init__(self,ZIAgentTest):
         self.ZIAgentTest = ZIAgentTest
         self.ZIOrderBook = ZIAgentTest.ZIOrderBook
-        self.CumArTime = ZIAgentTest.PricePathDF.CumulatedTime
-        self.AskPricePath = ZIAgentTest.PricePathDF.AskP_2
-        self.BidPricePath = ZIAgentTest.PricePathDF.BidP_2
+        # self.CumArTime = ZIAgentTest.PricePathDF.CumulatedTime
+        # self.AskPricePath = ZIAgentTest.PricePathDF.AskP_2
+        # self.BidPricePath = ZIAgentTest.PricePathDF.BidP_2
+        
+        self.CumArTime = ZIAgentTest.CurrentTimePath
+        self.AskPricePath = ZIAgentTest.AskPricePath
+        self.BidPricePath = ZIAgentTest.BidPricePath        
+        
         self.TICK_SIZE = ZIAgentTest.TICK_SIZE
         self.MU = ZIAgentTest.MU
         self.LAMBDA = ZIAgentTest.LAMBDA
@@ -178,8 +188,19 @@ if __name__ == "__main__":
     ZIOrderBook = [[]]
         
     OMSTest = OrderManagementSystem(PRICE_A_START,PRICE_B_START,TICK_SIZE,5,PRICE_START)
-    ZIAgentTest = ZIAgent("ZIagent",OMSTest,MAX_PRICE_LEVELS,TICK_SIZE,QTYSIZE,MU_Est,LAMBDA_Est,THETA_Est,\
-                          CurrentTime,OrderCount,ZIOrderBook)
+    ZIAgentTest = ZIAgent(NAME                =   "ZIagent", 
+                          OMSinput            =   OMSTest, 
+                          MAX_PRICE_LEVELS    =   MAX_PRICE_LEVELS, 
+                          TICK_SIZE           =   TICK_SIZE, 
+                          # QTYSIZE             =   qtysize, 
+                          MU                  =   MU_Est, 
+                          LAMBDA              =   LAMBDA_Est, 
+                          THETA               =   THETA_Est, 
+                          CurrentTime         =   CurrentTime, 
+                          OrderCount          =   OrderCount, 
+                          ZIOrderBook         =   ZIOrderBook)
+    
+
     # ready for output
     starttime=time.perf_counter()
 
@@ -192,7 +213,7 @@ if __name__ == "__main__":
         ZIAgentTest.Update(OMSTest)                   # update ZIAgentTest
         
         # ZIAgentTest.ZIAgentConsolePrint(OMSTest) # print order and book results
-        if (ZIAgentTest.OrderCount % 500 == 0 ):
+        if (ZIAgentTest.OrderCount % 5000 == 0 ):
             print(ZIAgentTest.OrderCount, end=" ")
                        
     # report general results
@@ -232,6 +253,10 @@ if __name__ == "__main__":
     print(VerticalTest.CancelOrderCount('sell'))
 
     
+    
+    
+    
+   
     
     
     

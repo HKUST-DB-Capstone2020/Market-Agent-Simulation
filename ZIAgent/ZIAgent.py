@@ -19,6 +19,13 @@ import matplotlib.pyplot as plt
 # from LOB.LOB import LimitOrderBook
 from OMS.OMS import OrderManagementSystem 
 
+import numba as nb
+
+@nb.jit('int_(float64[:])')
+def rand_nb(prob):
+    return np.searchsorted(np.cumsum(prob)/prob.sum(), np.random.random(), side="right")
+    
+
 
 class ZIAgent(object):
     def __init__(self,NAME,OMSinput,MAX_PRICE_LEVELS,TICK_SIZE,MU,LAMBDA,THETA,\
@@ -38,31 +45,27 @@ class ZIAgent(object):
         self.LAMBDA_PowerLaw = np.array([self.K/(pow(j,self.ALPHA)) for j in range(1,6)] )
         self.AskBookHistory = [list(OMSinput.ask_book)]
         self.BidBookHistory = [list(OMSinput.bid_book)]
-        self.PricePathDF =  pd.DataFrame({"AskPrice":[0.0],"AskP_2":[0.0],"BidPrice":[0.0],"BidP_2":[0.0],"MarketPrice":[0.0],\
-                             "ArrivalTime":[0.0],"CumulatedTime":[0.0]},\
-                               index = range(1),\
-                               columns=['AskPrice','AskP_2','BidPrice','BidP_2','MarketPrice','ArrivalTime','CumulatedTime'])
-        self.PricePathDF.AskPrice[0] = self.PricePathDF.AskP_2[0] = OMSinput.ask
-        self.PricePathDF.BidPrice[0] = self.PricePathDF.BidP_2[0] = OMSinput.bid
-        self.PricePathDF.MarketPrice[0] = (OMSinput.ask + OMSinput.bid)/2
         self.CurrentTime = CurrentTime
         self.OrderCount = OrderCount
         self.ZIOrderBook = ZIOrderBook
         self.OrderArrivalTime = 0
         self.OrderIssued = []
-
-
+        self.AskPricePath = np.array([OMSinput.ask])
+        self.BidPricePath = np.array([OMSinput.bid])
+        self.CurrentTimePath = np.array(CurrentTime)
+        self.ArrivalTimePath = np.array(0)
+    
      
     def Execute(self,OMSinput):
         if (OMSinput.ask == OMSinput.MAX_PRICE):
         # if (OMSinput.ask == 4560987):
-            self.priceA = int(round( self.PricePathDF.AskP_2[len(self.PricePathDF)-1] / self.TICK_SIZE ))
+            self.priceA = int(round( self.AskPricePath[-1] / self.TICK_SIZE ))
         else:
             self.priceA = int(round( OMSinput.ask / self.TICK_SIZE ))
         
         if (OMSinput.bid  == OMSinput.MIN_PRICE):
         # if (OMSinput.bid == 0):
-            self.priceB = int(round( self.PricePathDF.BidP_2[len(self.PricePathDF)-1] / self.TICK_SIZE ))
+            self.priceB = int(round( self.BidPricePath[-1] / self.TICK_SIZE ))
         else:
             self.priceB = int(round( OMSinput.bid / self.TICK_SIZE )) 
         
@@ -71,7 +74,7 @@ class ZIAgent(object):
         
         
         """
-        ### use power law to calculate limit order rates
+        # use power law to calculate limit order rates
         bidLimitRate = np.zeros(self.MAX_PRICE_LEVELS)
         bidLimitRate[self.priceA-5:self.priceA] = self.LAMBDA_PowerLaw[::-1]
 
@@ -80,14 +83,13 @@ class ZIAgent(object):
         
         """
         
-        # """
-        ### use Estimated values of limit order rates
+        # use Estimated values of limit order rates
         bidLimitRate = np.zeros(self.MAX_PRICE_LEVELS)
-        bidLimitRate[self.priceA-5:self.priceA] = self.LAMBDA[::-1]
+        bidValidDist = self.priceA - max(1,self.priceA-5)
+        bidLimitRate[self.priceA-bidValidDist : self.priceA] = self.LAMBDA[:bidValidDist:][::-1]
         
         askLimitRate = np.zeros(self.MAX_PRICE_LEVELS)
         askLimitRate[self.priceB+1:self.priceB+1+5] = self.LAMBDA
-        # """
         
         
         # cancel order rates
@@ -97,10 +99,10 @@ class ZIAgent(object):
     
         AskBookArray = np.zeros(self.MAX_PRICE_LEVELS,dtype=np.int64)
         for j in OMSinput.ask_book:
-            AskBookArray[int(round(j.price/self.TICK_SIZE))] = j.qty // self.qtysize
-            
+            AskBookArray[int(round(j.price/self.TICK_SIZE))] = j.qty // self.qtysize            
+        
         bidCancelTheta = self.THETA[-1] * (self.priceA-5 > priceRange) 
-        bidCancelTheta[self.priceA-5:self.priceA] = self.THETA[::-1]
+        bidCancelTheta[self.priceA-bidValidDist : self.priceA] = self.THETA[:bidValidDist:][::-1]
         bidCancelRate = bidCancelTheta * BidBookArray
         
         askcancelTheta = self.THETA[-1] * (self.priceB+5 < priceRange) 
@@ -114,12 +116,13 @@ class ZIAgent(object):
         
         totalRate =   bidLimitRate.sum() + askLimitRate.sum()       \
                     + bidCancelRate.sum() + askCancelRate.sum()         \
-                    + bidMarketOrderRate + askMarketOrderRate
-    
-        Pchoice = [ j/totalRate for j in [bidLimitRate.sum()  , askLimitRate.sum()  , \
-                                          bidCancelRate.sum() , askCancelRate.sum() , \
-                                          bidMarketOrderRate  , askMarketOrderRate] ]
-        index = np.random.choice(6, p = Pchoice )
+                    + bidMarketOrderRate + askMarketOrderRate           
+        
+        Pchoice = np.array([bidLimitRate.sum()  , askLimitRate.sum()  , \
+                            bidCancelRate.sum() , askCancelRate.sum() , \
+                            bidMarketOrderRate  , askMarketOrderRate]) / totalRate
+        # index = np.random.choice(6, p = Pchoice )
+        index = rand_nb(Pchoice)
         
         orderDirection = ""
         orderType = ""
@@ -129,22 +132,22 @@ class ZIAgent(object):
         # bid limit order
             orderDirection = "buy"
             orderType = "limit"
-            orderPrice = round(self.TICK_SIZE * np.random.choice(priceRange, p = bidLimitRate/bidLimitRate.sum()),self.PriceDecimals)
+            orderPrice = round(self.TICK_SIZE * rand_nb(bidLimitRate/bidLimitRate.sum()),self.PriceDecimals)
         elif index == 1:
         # ask limit order
             orderDirection = "sell"
             orderType = "limit"
-            orderPrice = round(self.TICK_SIZE * np.random.choice(priceRange, p = askLimitRate/askLimitRate.sum()),self.PriceDecimals)
+            orderPrice = round(self.TICK_SIZE * rand_nb(askLimitRate/askLimitRate.sum()),self.PriceDecimals)
         elif index == 2:
-       # bid cancel order
+        # bid cancel order
             orderDirection = "buy"
             orderType = "cancel"
-            orderPrice = round(self.TICK_SIZE * np.random.choice(priceRange, p = bidCancelRate/bidCancelRate.sum()),self.PriceDecimals)
+            orderPrice = round(self.TICK_SIZE * rand_nb(bidCancelRate/bidCancelRate.sum()),self.PriceDecimals)
         elif index == 3:
         # ask cancel order
             orderDirection = "sell"
             orderType = "cancel"
-            orderPrice = round(self.TICK_SIZE * np.random.choice(priceRange, p = askCancelRate/askCancelRate.sum()),self.PriceDecimals)
+            orderPrice = round(self.TICK_SIZE * rand_nb(askCancelRate/askCancelRate.sum()),self.PriceDecimals)
         elif index == 4:
         # bid market order
             orderDirection = "buy"
@@ -172,32 +175,11 @@ class ZIAgent(object):
         
         self.ZIOrderBook.append(self.OrderIssued) 
         self.CurrentTime += self.OrderArrivalTime
+        self.CurrentTimePath = np.append(self.CurrentTimePath,self.CurrentTime)
+        self.ArrivalTimePath = np.append(self.ArrivalTimePath,self.OrderArrivalTime)
         self.OrderCount += 1       
         return  (self.OrderIssued,self.OrderArrivalTime)
-        
-    
-    
-    def PricePathUpdate(self,OMSinput):
-        AskPriceAppend = OMSinput.ask
-        BidPriceAppend = OMSinput.bid
-        MarketPriceAppend = (AskPriceAppend + BidPriceAppend) /2
-        # MarketPriceAppend = OMStest.lastprice
-        if (AskPriceAppend == OMSinput.MAX_PRICE):
-            AskP2Append = self.PricePathDF.AskP_2[len(self.PricePathDF)-1]
-        else:
-            AskP2Append =  AskPriceAppend   
-        if (BidPriceAppend == OMSinput.MIN_PRICE):
-            BidP2Append = self.PricePathDF.BidP_2[len(self.PricePathDF)-1]
-        else:
-            BidP2Append = BidPriceAppend
-  
-        PricePathAppend = pd.DataFrame([AskPriceAppend,AskP2Append,BidPriceAppend,BidP2Append,MarketPriceAppend,\
-                                  #   self.OrderArrivalTime,self.CurrentTime+self.OrderArrivalTime], \
-                                      self.OrderArrivalTime,self.CurrentTime]).T
-        PricePathAppend.columns = self.PricePathDF.columns
-        
-        return PricePathAppend
-    
+           
 
 
     def Update(self,OMSinput):
@@ -206,7 +188,22 @@ class ZIAgent(object):
         
         self.AskBookHistory.append(list(OMSinput.ask_book))
         self.BidBookHistory.append(list(OMSinput.bid_book))
-        self.PricePathDF = pd.concat([self.PricePathDF,self.PricePathUpdate(OMSinput)],ignore_index=True)        
+        
+        AskPriceAppend = OMSinput.ask
+        BidPriceAppend = OMSinput.bid
+        
+        if (AskPriceAppend == OMSinput.MAX_PRICE):
+            AskP2Append = self.AskPricePath[-1]
+        else:
+            AskP2Append =  AskPriceAppend   
+        if (BidPriceAppend == OMSinput.MIN_PRICE):
+            BidP2Append = self.BidPricePath[-1]
+        else:
+            BidP2Append = BidPriceAppend
+        
+        self.AskPricePath = np.append(self.AskPricePath,AskP2Append)
+        self.BidPricePath = np.append(self.BidPricePath,BidP2Append)
+        
         # self.CurrentTime += self.OrderArrivalTime
         # self.OrderCount += 1        
  
@@ -380,9 +377,8 @@ class ZIAgent(object):
 
 
     def PirceOrderPlot(self):
-        plt.plot(self.PricePathDF.AskP_2,color ='green',lw=1) 
-        plt.plot(self.PricePathDF.BidP_2,color ='red',lw=1) 
-        # plt.plot(PricePathDF.MarketPrice,color ='yellow',lw=1) 
+        plt.plot(self.AskPricePath,color ='green',lw=1) 
+        plt.plot(self.BidPricePath,color ='red',lw=1)         
         plt.ylabel('Price')
         plt.xlabel('Order Sequence')
         plt.show()
@@ -390,20 +386,19 @@ class ZIAgent(object):
 
 
     def PirceTimePlot(self):
-        plt.plot(self.PricePathDF.CumulatedTime,self.PricePathDF.AskP_2,color ='green',lw=1)
-        plt.plot(self.PricePathDF.CumulatedTime,self.PricePathDF.BidP_2,color ='red',lw=1)
-        # plt.plot(PricePathDF.CumulatedTime,PricePathDF.MarketPrice,color ='yellow',lw=1)
+        plt.plot(self.CurrentTimePath,self.AskPricePath,color ='green',lw=1)
+        plt.plot(self.CurrentTimePath,self.BidPricePath,color ='red',lw=1)
         plt.ylabel('Price')
         plt.xlabel('Time')
         plt.show() 
 
 
-
     def ArrivalTimeFrequencyPlot(self):
-        print("Average arrival time: ",np.mean(self.PricePathDF.ArrivalTime))
-        plt.hist(self.PricePathDF.ArrivalTime, bins = 20, range = (0,self.PricePathDF.ArrivalTime.max()) )
+        print("Average arrival time: ",np.mean(self.ArrivalTimePath))
+        plt.hist(self.ArrivalTimePath, bins = 20, range = (0,self.ArrivalTimePath.max()) )
         plt.title("The frequency distribution of ArricalTime:")
         plt.show()
+    
     
     
     

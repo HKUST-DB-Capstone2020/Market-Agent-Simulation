@@ -6,9 +6,8 @@ Created on Sun Apr 26 18:53:22 2020
 """
 """
 Horizontal analysis of Limit Order Book:
-The aim of Class OrderDistributionAnalysis is to analyze the first generated order. 
-The class can simulate first generated order 10000 or even more times, and calculate the distribution of each type of order.
-However, the criteria is subjective. That is, one may need to make judgement based on the output.
+Given an initial order book status, the Horizontal Tests will simulate the first arrived order 10000 or even more times, 
+and verify the distribution of each type of order.
 """
 import numpy as np
 import pandas as pd
@@ -20,10 +19,10 @@ sys.path.append(os.path.pardir)
 # from LOB.LOB import LimitOrderBook
 
 
-os.chdir("C:\\Users\\Lenovo\\Desktop")
+#os.chdir("C:\\Users\\Lenovo\\Desktop")
 
 from OMS.OMS import OrderManagementSystem 
-from ZIAgent import ZIAgent
+from ZIAgent.ZIAgent import ZIAgent
 
 
 
@@ -310,10 +309,19 @@ if __name__ == "__main__":
     OrderCount = 0
     ZIOrderBook = [[]]
 
-    SampleSize = 10000
+    SampleSize = 1000000
     OMSTest = OrderManagementSystem(PRICE_A_START,PRICE_B_START,TICK_SIZE,5,PRICE_START)
-    ZIAgentTest = ZIAgent("ZIagent",OMSTest,MAX_PRICE_LEVELS,TICK_SIZE,QTYSIZE,MU_Est,LAMBDA_Est,THETA_Est,\
-                          CurrentTime,OrderCount,ZIOrderBook)
+    ZIAgentTest = ZIAgent(NAME                =   "ZIagent", 
+                          OMSinput            =   OMSTest, 
+                          MAX_PRICE_LEVELS    =   MAX_PRICE_LEVELS, 
+                          TICK_SIZE           =   TICK_SIZE, 
+                          #QTYSIZE             =   qtysize, 
+                          MU                  =   MU_Est, 
+                          LAMBDA              =   LAMBDA_Est, 
+                          THETA               =   THETA_Est, 
+                          CurrentTime         =   CurrentTime, 
+                          OrderCount          =   OrderCount, 
+                          ZIOrderBook         =   ZIOrderBook)
        
     HorizontalTest = HorizontalAnalysis(SampleSize,OMSTest,ZIAgentTest)
     
@@ -343,7 +351,6 @@ if __name__ == "__main__":
     print(HorizontalTest.ResultTest('death', 'buy', OMSTest, order_issued, arrival_time))
     print("Cancel Sell Order Test:")
     print(HorizontalTest.ResultTest('death', 'sell', OMSTest, order_issued, arrival_time))
-    
     
     
     

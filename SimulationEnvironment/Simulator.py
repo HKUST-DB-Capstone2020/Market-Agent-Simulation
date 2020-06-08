@@ -38,7 +38,7 @@ class State:
 
 class Simulator:
     
-    def __init__(self):
+    def __init__(self, strat_name=None, trans_record=False):
         
         self.MAX_PRICE_LEVELS = 200  # total number of price grids
         self.TICK_SIZE        = 0.1  # usually 1 or 0.1 or 0.01
@@ -73,6 +73,8 @@ class Simulator:
                                              lastPrice  = self.PRICE_START,
                                              init_qty   = self.qtysize)
         
+        if trans_record: self.OMSTest.record(strat_name)
+        
         self.ZIAgent = ZIAgent(NAME             = "ZIagent", 
                                OMSinput         = self.OMSTest, 
                                MAX_PRICE_LEVELS = self.MAX_PRICE_LEVELS, 
@@ -91,14 +93,14 @@ class Simulator:
                              trade_price_record = self.OMSTest.trade_price_record, 
                              trade_vol_record   = self.OMSTest.trade_vol_record, 
                              strategy_record    = self.OMSTest.strategy_record, 
-                             execPrc            = self.OMSTest.execPrc
-                             execQty            = self.OMSTest.execQty
+                             execPrc            = self.OMSTest.execPrc,
+                             execQty            = self.OMSTest.execQty,
                              current_time       = self.ZIAgent.CurrentTime,
                              lastTime           = self.lastTime,
                              time_horizon       = self.TimeHorizon)
 
-    def reset(self):
-        self.__init__()
+    def reset(self, strat_name, trans_record):
+        self.__init__(strat_name, trans_record)
         return self.state   
     
     def step(self, action):
@@ -141,11 +143,11 @@ class Simulator:
 
 if __name__ == '__main__':
     
-    ## init simulator
-    env  = Simulator()
-    
-    # which strategy to use
+    ## which strategy to use
     strat = "Strategy_demo1"
+    ## init simulator
+    env  = Simulator(strat_name=strat, trans_record=True)
+    
     if strat == "Strategy_demo1":
         algo = myStrategy_demo1(para1 = 0.5,  # for demenstration purpose
                                 para2 = 0.1)  # for demenstration purpose
@@ -160,7 +162,7 @@ if __name__ == '__main__':
     for episode in range(episodes):        
         
         # reset state and algos
-        state = env.reset()
+        state = env.reset(strat_name=strat_name, trans_record=True)
         algo.reset()
         done = False
     

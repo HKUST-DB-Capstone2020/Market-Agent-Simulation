@@ -73,6 +73,8 @@ class OrderManagementSystem:
         self.tick = tick
         self.trade_price_record = []
         self.trade_vol_record = []
+        self.execPrice = []
+        self.execQty = []
         self.MAX_PRICE = 4560987
         self.MIN_PRICE = 0
         self.is_record = False

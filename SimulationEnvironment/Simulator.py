@@ -93,7 +93,7 @@ class Simulator:
                              trade_price_record = self.OMSTest.trade_price_record, 
                              trade_vol_record   = self.OMSTest.trade_vol_record, 
                              strategy_record    = self.OMSTest.strategy_record, 
-                             execPrc            = self.OMSTest.execPrc,
+                             execPrc            = self.OMSTest.execPrice,
                              execQty            = self.OMSTest.execQty,
                              current_time       = self.ZIAgent.CurrentTime,
                              lastTime           = self.lastTime,
@@ -125,7 +125,7 @@ class Simulator:
         self.state.trade_price_record = self.OMSTest.trade_price_record
         self.state.trade_vol_record   = self.OMSTest.trade_vol_record
         self.state.strategy_record    = self.OMSTest.strategy_record
-        self.state.execPrc            = self.OMSTest.execPrc
+        self.state.execPrc            = self.OMSTest.execPrice
         self.state.execQty            = self.OMSTest.execQty
         self.state.current_time       = self.ZIAgent.CurrentTime
         self.time_horizon             = self.TimeHorizon
@@ -144,15 +144,16 @@ class Simulator:
 if __name__ == '__main__':
     
     ## which strategy to use
-    strat = "Strategy_demo1"
+    strat = "strategy"
     ## init simulator
     env  = Simulator(strat_name=strat, trans_record=True)
     
-    if strat == "Strategy_demo1":
+    if strat == "strategy":
         algo = myStrategy_demo1(para1 = 0.5,  # for demenstration purpose
                                 para2 = 0.1)  # for demenstration purpose
     
     episodes      = 10_000
+    # episodes      = 100
     shortfall     = episodes * [0.0]
     ref_revenue   = episodes * [0.0]
     strat_revenue = episodes * [0.0]
@@ -160,9 +161,9 @@ if __name__ == '__main__':
     # time for running program
     RunningStartTime = time.perf_counter()
     for episode in range(episodes):        
-        
+        print(episode)
         # reset state and algos
-        state = env.reset(strat_name=strat_name, trans_record=True)
+        state = env.reset(strat_name=strat, trans_record=True)
         algo.reset()
         done = False
     
@@ -174,7 +175,7 @@ if __name__ == '__main__':
             state = env.step(algo_action)
         
         # env.ZIAgent.ZIAgentPirceOrderPlot()
-        env.ZIAgent.PirceTimePlot()
+        # env.ZIAgent.PirceTimePlot()
         
         shortfall[episode], ref_revenue[episode], strat_revenue[episode] = env.slippage()
     
@@ -184,4 +185,5 @@ if __name__ == '__main__':
     result['shortfall'] = shortfall
     result['ref_revenue'] = ref_revenue
     result['strat_revenue'] = strat_revenue
+    # print(result)
 

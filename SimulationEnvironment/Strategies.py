@@ -7,8 +7,8 @@ Created on Thu May 14 17:20:38 2020
 """
 
 DAILY_VOL    = 0.09276              # daily(-->TimeHorizon=100s) volatility
-DAILY_VOLUME = 375_520              # ADTV
-TOTAL_SIZE   = DAILY_VOLUME * 0.1   # shares to execute
+DAILY_VOLUME = 187760              # ADTV
+TOTAL_SIZE   = int(DAILY_VOLUME * 0.1)   # shares to execute
 EXEC_PERIOD  = 10                   # liquidation period
 
 DIRECTION    = "sell"
@@ -26,7 +26,7 @@ class Algo:  # base class
         return strategy_order, self.done
 
 
-class Strategy_demo1(Algo):
+class myStrategy_demo1(Algo):
     
     __init__base = Algo.__init__
     
@@ -44,11 +44,16 @@ class Strategy_demo1(Algo):
         self.__init__(self.para1, self.para2)
     
     def action(self, state):
-        
         ## for demenstration purpose
-        
+
         if not self.done:
-            strategy_order = [ORDER_ID, "market", DIRECTION, TOTAL_SIZE/EXEC_PERIOD, 0]
+
+            if state.strategy_record.position > -TOTAL_SIZE:
+                strategy_order = [ORDER_ID, "market", DIRECTION, min(10, abs(state.strategy_record.position+TOTAL_SIZE)), 0]
+                # print(state.strategy_record.position)
+            else:
+                self.done = True
+                strategy_order = []
         else:
             strategy_order = []
         

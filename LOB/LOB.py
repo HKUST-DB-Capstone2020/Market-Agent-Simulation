@@ -6,7 +6,7 @@ isBID = -1
 
 class Book:
     
-    def __init__(self, bidORask, nearPrice, tick, orderLevel, init_qty = 1000):
+    def __init__(self, bidORask, nearPrice, tick, orderLevel=5, init_qty = 1000):
         self.bidORask     = isASK   if bidORask == 'ask' else isBID
         self.prc_qty      = collections.namedtuple('prc_qty',['price','qty'])
         self.ID_qty       = collections.namedtuple('ID_qty', ['ID','qty'])
@@ -14,11 +14,25 @@ class Book:
         self.tick         = tick
         self.orderLevel   = orderLevel
         self.init_qty     = init_qty
-        self.Book_public  = collections.deque( self.prc_qty(price = round(self.nearPrice + self.bidORask*i*self.tick,4), 
-                                                            qty   = self.init_qty) 
-                                               for i in range(self.orderLevel) )
-        self.Book_private = collections.deque( [self.ID_qty(ID = 'ZIagent', qty = self.init_qty)] for i in range(self.orderLevel) )
         
+        
+        ## stable state of LOB  (simulated 1,000 and averaged)
+        init_askBook = [ 2177, 1575, 1514, 1382, 1063 ]
+        init_bidBook = [ 2102, 1592, 1517, 1352, 1062 ]
+        
+        
+        if self.bidORask == isASK:
+            self.Book_public  = collections.deque( self.prc_qty(price = round(self.nearPrice + self.bidORask*i*self.tick,4), 
+                                                                qty   = init_askBook[i]) for i in range(len(init_askBook)) )
+    
+            self.Book_private = collections.deque( [self.ID_qty(ID = 'ZIagent', qty = init_askBook[i])] for i in range(len(init_askBook)) )
+        else:
+            self.Book_public  = collections.deque( self.prc_qty(price = round(self.nearPrice + self.bidORask*i*self.tick,4), 
+                                                                qty   = init_bidBook[i]) for i in range(len(init_bidBook)) )
+    
+            self.Book_private = collections.deque( [self.ID_qty(ID = 'ZIagent', qty = init_bidBook[i])] for i in range(len(init_bidBook)) )
+        
+            
 
     def reset(self, nearPrice):
         self.nearPrice = nearPrice

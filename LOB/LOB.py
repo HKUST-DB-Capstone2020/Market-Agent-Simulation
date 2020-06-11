@@ -131,14 +131,14 @@ class Book:
             qty_to_cancel = quantity
             while qty_to_cancel > 0:
                 if self.Book_private[book_loc][-1].ID == ID: # tail orders are from this ID
-                    if self.Book_private[book_loc][-1].qty < qty_to_cancel: # not enough to cancel
+                    if self.Book_private[book_loc][-1].qty <= qty_to_cancel: # not enough to cancel or exactly cancel
                         qty_to_cancel -= self.Book_private[book_loc][-1].qty
                         self.Book_private[book_loc].pop(-1)
                     else:  # enough to cancel
                         self.Book_private[book_loc][-1] = self.Book_private[book_loc][-1]._replace( qty=self.Book_private[book_loc][-1].qty - qty_to_cancel ) 
                         qty_to_cancel = 0
                 else: # penultimate orders are from this ID
-                    if self.Book_private[book_loc][-2].qty < qty_to_cancel: # not enough to cancel
+                    if self.Book_private[book_loc][-2].qty <= qty_to_cancel: # not enough to cancel or exactly cancel
                         qty_to_cancel -= self.Book_private[book_loc][-2].qty
                         self.Book_private[book_loc].pop(-2)
                     else:  # enough to cancel

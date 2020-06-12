@@ -107,7 +107,7 @@ class Simulator:
         
         for act in action:  # multiple actions
             if act:  # this action is not empty list
-                self.OMSTest.receive(action)
+                self.OMSTest.receive(act)
         
         self.state.lastTime = self.state.current_time
         self.ZIAgent.Execute(self.OMSTest)              # execute ZIAgent generator

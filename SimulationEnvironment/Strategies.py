@@ -57,7 +57,7 @@ class myStrategy_demo1(Algo):
         else:
             strategy_order = []
         
-        return strategy_order, self.done
+        return [strategy_order], self.done
 
                         
                         
